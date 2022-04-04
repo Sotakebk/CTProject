@@ -1,38 +1,183 @@
-using System;
 using CTProject.Infrastructure;
+using System;
+using System.Linq;
 
 namespace CTProject.Examples
 {
     public class SimpleDataProvider : IDataProvider, IDependencyConsumer
     {
+        #region properties
+
         public DataProviderState State { get; private set; }
+        public uint BufferSize { get; private set; }
+        public uint SamplingRate { get; private set; }
+        public uint SelectedChannel { get; private set; }
 
-        public ChannelInfo[] GetAvailableChannels() => throw new NotImplementedException();
+        #endregion properties
 
-        public float GetMaxValue() => throw new NotImplementedException();
+        #region Dependencies
 
-        public float GetMinValue() => throw new NotImplementedException();
+        private ILoggingService LoggingService;
 
-        public uint[] GetPossibleBufferSizes() => throw new NotImplementedException();
+        #endregion Dependencies
 
-        public void GetPossibleChannels(uint BufferSize) => throw new NotImplementedException();
+        #region fields
 
-        public uint[] GetPossibleSamplingRates() => throw new NotImplementedException();
+        private Func<int, uint, float>[] sources;
+        private IDataConsumer consumer;
+        private SimpleDataProviderWorker worker;
 
-        public void Initialize() => throw new NotImplementedException();
+        #endregion fields
 
-        public void LoadDependencies(IDependencyProvider dependencyProvider) => throw new NotImplementedException();
+        #region IDependencyConsumer
 
-        public void Reset() => throw new NotImplementedException();
+        public void LoadDependencies(IDependencyProvider dependencyProvider)
+        {
+            LoggingService = dependencyProvider.GetDependency<ILoggingService>();
+        }
 
-        public void SetChannel(uint ChannelID) => throw new NotImplementedException();
+        #endregion IDependencyConsumer
 
-        public void SetSamplingRate(uint SamplesPerSecond) => throw new NotImplementedException();
+        #region IDataProvider
 
-        public void Start() => throw new NotImplementedException();
+        public void Initialize()
+        {
+            if (State != DataProviderState.Uninitialized)
+            {
+                LoggingService?.Log(new InvalidOperationException());
+            }
 
-        public void Stop() => throw new NotImplementedException();
+            sources = new Func<int, uint, float>[]
+            {
+                Sin,
+                Square,
+                Saw
+            };
 
-        public void Subscribe(IDataConsumer consumer) => throw new NotImplementedException();
+            State = DataProviderState.Initialized;
+        }
+
+        public ChannelInfo[] GetAvailableChannels()
+        {
+            if (sources == null)
+            {
+                LoggingService?.Log(new InvalidOperationException());
+                return null;
+            }
+
+            var ci = new ChannelInfo[sources.Length];
+            for (int x = 0; x < sources.Length; x++)
+            {
+                ci[x] = new ChannelInfo()
+                {
+                    Name = sources[x].Method.Name,
+                    ID = (uint)x
+                };
+            }
+
+            return ci;
+        }
+
+        public void SetChannel(uint ChannelID)
+        {
+            bool working = State == DataProviderState.Working;
+            if (working)
+                Stop();
+
+            SelectedChannel = ChannelID;
+            consumer?.OnSettingsChange(this);
+
+            if (working)
+                Start();
+        }
+
+        public float GetMaxValue() => 1f;
+
+        public float GetMinValue() => -1f;
+
+        public uint[] GetAvailableBufferSizes() => new uint[] { 128, 256, 512, 1024, 2048, 4096 };
+
+        public void SetBufferSize(uint BufferSize)
+        {
+            if (!GetAvailableBufferSizes().Contains(BufferSize))
+            {
+                LoggingService?.Log(new ArgumentException(nameof(BufferSize)));
+                return;
+            }
+
+            bool working = State == DataProviderState.Working;
+            if (working)
+                Stop();
+
+            this.BufferSize = BufferSize;
+            consumer?.OnSettingsChange(this);
+
+            if (working)
+                Start();
+        }
+
+        public uint[] GetAvailableSamplingRates() => new uint[] { 1024, 2048, 4096, 8192, 16384, 32768 };
+
+        public void SetSamplingRate(uint SamplingRate)
+        {
+            if (!GetAvailableSamplingRates().Contains(SamplingRate))
+            {
+                LoggingService?.Log(new ArgumentException(nameof(SamplingRate)));
+                return;
+            }
+
+            bool working = State == DataProviderState.Working;
+            if (working)
+                Stop();
+
+            this.SamplingRate = SamplingRate;
+            consumer?.OnSettingsChange(this);
+
+            if (working)
+                Start();
+        }
+
+        public void Reset()
+        {
+            Stop();
+            Start();
+        }
+
+        public void Start()
+        {
+            worker?.Stop();
+            consumer?.ResetIndex();
+            worker = new SimpleDataProviderWorker(SamplingRate, BufferSize, sources[SelectedChannel], consumer);
+            worker.Start();
+        }
+
+        public void Stop()
+        {
+            worker.Stop();
+        }
+
+        public void Subscribe(IDataConsumer consumer)
+        {
+            this.consumer = consumer;
+        }
+
+        #endregion IDataProvider
+
+        private float Sin(int x, uint SamplingRate)
+        {
+            double position = (x * Math.PI) / (SamplingRate * 2);
+            return (float)Math.Sin(position);
+        }
+
+        private float Square(int x, uint SamplingRate)
+        {
+            return Math.Sign(Sin(x, SamplingRate));
+        }
+
+        private float Saw(int x, uint SamplingRate)
+        {
+            double position = (x * Math.PI) / (SamplingRate * 2);
+            return (float)(position - Math.Ceiling(position));
+        }
     }
 }

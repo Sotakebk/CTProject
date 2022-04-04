@@ -17,13 +17,13 @@ namespace CTProject.Infrastructure
 
         void SetChannel(uint ChannelID);
 
-        uint[] GetPossibleSamplingRates();
+        uint[] GetAvailableSamplingRates();
 
-        void SetSamplingRate(uint SamplesPerSecond);
+        void SetSamplingRate(uint SamplingRate);
 
-        uint[] GetPossibleBufferSizes();
+        uint[] GetAvailableBufferSizes();
 
-        void GetPossibleChannels(uint BufferSize);
+        void SetBufferSize(uint BufferSize);
 
         float GetMinValue();
 
