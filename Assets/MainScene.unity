@@ -132,6 +132,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 376084856}
+  - component: {fileID: 376084858}
+  - component: {fileID: 376084857}
+  - component: {fileID: 376084859}
   m_Layer: 0
   m_Name: Controller
   m_TagString: Untagged
@@ -153,6 +156,46 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &376084857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 376084855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba7621ce9f53bab47b72b2b34f764c08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &376084858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 376084855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3546a932c70a0dc46b6e70b73b4b8e90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  registerMonoBehaviours:
+  - {fileID: 376084857}
+--- !u!114 &376084859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 376084855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2cee5c2109ae02498c23ed947e49161, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RegisterDataConsumers:
+  - {fileID: 0}
 --- !u!1 &564657869
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,7 +7,21 @@ namespace CTProject.Unity
 {
     public class DependencyProvider : MonoBehaviour, IDependencyProvider
     {
+        // set from Unity
+        [SerializeField]
+        private List<MonoBehaviour> registerMonoBehaviours;
+
         private List<object> registeredObjects;
+
+        private void Awake()
+        {
+            registeredObjects = new List<object>();
+
+            foreach (var obj in registerMonoBehaviours)
+            {
+                Register(obj);
+            }
+        }
 
         public void Register<T>(T value)
         {

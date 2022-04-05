@@ -149,11 +149,13 @@ namespace CTProject.Examples
             consumer?.ResetIndex();
             worker = new SimpleDataProviderWorker(SamplingRate, BufferSize, sources[SelectedChannel], consumer);
             worker.Start();
+            State = DataProviderState.Working;
         }
 
         public void Stop()
         {
             worker.Stop();
+            State = DataProviderState.Stopped;
         }
 
         public void Subscribe(IDataConsumer consumer)

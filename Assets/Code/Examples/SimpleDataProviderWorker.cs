@@ -14,6 +14,8 @@ namespace CTProject.Examples
             Stop
         }
 
+        public bool IsWorking => WorkerThread?.IsAlive ?? false;
+
         private readonly uint samplingRate;
         private readonly uint bufferSize;
         private readonly Func<int, uint, float> dataSourceLogic;
@@ -70,7 +72,8 @@ namespace CTProject.Examples
             {
                 while (!messages.IsEmpty)
                 {
-                    messages.TryDequeue(out Message result);
+                    if (!messages.TryDequeue(out Message result))
+                        continue;
                     if (result == Message.Default)
                         continue;
                     if (result == Message.Stop)
