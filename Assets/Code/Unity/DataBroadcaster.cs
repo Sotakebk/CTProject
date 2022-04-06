@@ -1,4 +1,5 @@
 using CTProject.Infrastructure;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using UnityEngine;
@@ -7,31 +8,12 @@ namespace CTProject.Unity
 {
     public class DataBroadcaster : MonoBehaviour, IDataConsumer
     {
-        private class Message
-        {
-        }
-
-        private class OnSettingsChangeMessage : Message
-        {
-            public IDataProvider Source;
-        }
-
-        private class ReceiveDataMessage : Message
-        {
-            public ulong Index;
-            public float[] Data;
-        }
-
-        private class ResetIndexMessage : Message
-        {
-        }
-
         // set from Unity
         public MonoBehaviour[] RegisterDataConsumers;
 
         private IDataConsumer[] dataConsumers;
 
-        private ConcurrentQueue<Message> messageQueue;
+        private ConcurrentQueue<Action> actionQueue;
 
         private void Awake()
         {
@@ -40,8 +22,8 @@ namespace CTProject.Unity
 
         private void Start()
         {
-            messageQueue = new ConcurrentQueue<Message>();
-            dataConsumers ??= new IDataConsumer[0];
+            actionQueue = new ConcurrentQueue<Action>();
+            dataConsumers ??= Array.Empty<IDataConsumer>();
         }
 
         private void Update()
@@ -52,53 +34,72 @@ namespace CTProject.Unity
         private void ProcessMessages()
         {
             int i = 5;
-            while (i > 0 && messageQueue.Count > 0)
+            while (i > 0 && actionQueue.Count > 0)
             {
-                if (!messageQueue.TryDequeue(out var message))
+                i++;
+
+                if (!actionQueue.TryDequeue(out var action))
                     continue;
 
-                if (message is OnSettingsChangeMessage settingsChange)
-                    PropagateOnSettingsChangeMessage(settingsChange);
-                else if (message is ReceiveDataMessage receiveData)
-                    PropagateReceiveDataMessage(receiveData);
-                else if (message is ResetIndexMessage resetIndexMessage)
-                    PropagateResetIndexMessage(resetIndexMessage);
+                action();
             }
         }
 
-        private void PropagateOnSettingsChangeMessage(OnSettingsChangeMessage arg)
+        private void PropagateOnSettingsChange(IDataProvider source)
         {
             foreach (var dc in dataConsumers)
-                dc.OnSettingsChange(arg.Source);
+                dc.OnSettingsChange(source);
         }
 
-        private void PropagateReceiveDataMessage(ReceiveDataMessage arg)
+        private void PropagateReceiveData(ulong index, float[] data)
         {
             foreach (var dc in dataConsumers)
-                dc.ReceiveData(arg.Index, arg.Data);
+                dc.ReceiveData(index, data);
         }
 
-        private void PropagateResetIndexMessage(ResetIndexMessage arg)
+        private void PropagateResetIndex()
         {
             foreach (var dc in dataConsumers)
                 dc.ResetIndex();
+        }
+
+        private void PropagateDataStreamStarted(long tickCountOnStreamStart)
+        {
+            foreach (var dc in dataConsumers)
+                dc.DataStreamStarted(tickCountOnStreamStart);
+        }
+
+        private void PropagateDataStreamEnded()
+        {
+            foreach (var dc in dataConsumers)
+                dc.DataStreamEnded();
         }
 
         #region IDataConsumer
 
         public void OnSettingsChange(IDataProvider source)
         {
-            messageQueue.Enqueue(new OnSettingsChangeMessage() { Source = source });
+            actionQueue.Enqueue(() => PropagateOnSettingsChange(source));
         }
 
         public void ReceiveData(ulong index, float[] data)
         {
-            messageQueue.Enqueue(new ReceiveDataMessage() { Index = index, Data = data });
+            actionQueue.Enqueue(() => PropagateReceiveData(index, data));
         }
 
         public void ResetIndex()
         {
-            messageQueue.Enqueue(new ResetIndexMessage());
+            actionQueue.Enqueue(() => PropagateResetIndex());
+        }
+
+        public void DataStreamStarted(long tickCountOnStreamStart)
+        {
+            actionQueue.Enqueue(() => PropagateDataStreamStarted(tickCountOnStreamStart));
+        }
+
+        public void DataStreamEnded()
+        {
+            actionQueue.Enqueue(() => PropagateDataStreamEnded());
         }
 
         #endregion IDataConsumer

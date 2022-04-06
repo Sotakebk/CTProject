@@ -147,23 +147,60 @@ namespace CTProject.Examples
         {
             worker?.Stop();
             consumer?.ResetIndex();
-            worker = new SimpleDataProviderWorker(SamplingRate, BufferSize, sources[SelectedChannel], consumer);
+            worker = new SimpleDataProviderWorker(this, SamplingRate, BufferSize, sources[SelectedChannel], consumer);
             worker.Start();
-            State = DataProviderState.Working;
         }
 
         public void Stop()
         {
             worker.Stop();
-            State = DataProviderState.Stopped;
         }
 
         public void Subscribe(IDataConsumer consumer)
         {
+            worker?.Stop();
             this.consumer = consumer;
         }
 
         #endregion IDataProvider
+
+        #region SimpleDataPRoviderWorker callbacks
+
+        internal void OnWorkerStart()
+        {
+            UpdateProviderState();
+        }
+
+        internal void OnWorkerStop()
+        {
+            UpdateProviderState();
+        }
+
+        internal void OnWorkerLog(LogLevel level, object message)
+        {
+            LoggingService?.Log(level, message);
+        }
+
+        internal void OnWorkerException(Exception exception)
+        {
+            LoggingService?.Log(exception);
+        }
+
+        private void UpdateProviderState()
+        {
+            if (State == DataProviderState.Uninitialized)
+                return;
+
+            bool isWorking = worker?.IsWorking ?? false;
+
+            if (isWorking && State != DataProviderState.Working)
+                State = DataProviderState.Working;
+
+            if (!isWorking && (State != DataProviderState.Stopped || State != DataProviderState.Error))
+                State = DataProviderState.Stopped;
+        }
+
+        #endregion SimpleDataPRoviderWorker callbacks
 
         private float Sin(int x, uint SamplingRate)
         {

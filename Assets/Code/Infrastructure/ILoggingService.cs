@@ -13,6 +13,6 @@ namespace CTProject.Infrastructure
 
         void Log(LogLevel level, object message);
 
-        void Log(System.Exception message);
+        void Log(System.Exception exception);
     }
 }

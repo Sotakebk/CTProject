@@ -20,19 +20,21 @@ namespace CTProject.Examples
         private readonly uint bufferSize;
         private readonly Func<int, uint, float> dataSourceLogic;
         private readonly IDataConsumer consumer;
+        private readonly SimpleDataProvider owner;
 
-        private volatile Stopwatch stopwatch;
+        private Stopwatch stopwatch;
         private ConcurrentQueue<Message> messages;
         private volatile int index;
         private Thread WorkerThread;
         private object _lock;
 
-        public SimpleDataProviderWorker(uint samplingRate, uint bufferSize, Func<int, uint, float> dataSourceLogic, IDataConsumer consumer)
+        public SimpleDataProviderWorker(SimpleDataProvider owner, uint samplingRate, uint bufferSize, Func<int, uint, float> dataSourceLogic, IDataConsumer consumer)
         {
             this.samplingRate = samplingRate;
             this.bufferSize = bufferSize;
             this.dataSourceLogic = dataSourceLogic;
             this.consumer = consumer;
+            this.owner = owner;
 
             messages = new ConcurrentQueue<Message>();
             index = 0;
@@ -68,6 +70,10 @@ namespace CTProject.Examples
         {
             stopwatch = new Stopwatch();
             stopwatch.Start();
+            var timestamp = Stopwatch.GetTimestamp();
+            owner.OnWorkerStart();
+            consumer.DataStreamStarted(timestamp);
+
             while (true)
             {
                 while (!messages.IsEmpty)
@@ -77,7 +83,11 @@ namespace CTProject.Examples
                     if (result == Message.Default)
                         continue;
                     if (result == Message.Stop)
+                    {
+                        owner.OnWorkerStop();
+                        consumer.DataStreamEnded();
                         return;
+                    }
                 }
 
                 if (ShouldGenerateDataNow())
