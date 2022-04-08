@@ -10,23 +10,37 @@ namespace CTProject.Examples
     {
         private enum Message : int
         {
-            Default,
+            Default = 0,
             Stop
         }
 
-        public bool IsWorking => WorkerThread?.IsAlive ?? false;
+        #region fields
+
+        public bool IsWorking { get; private set; }
+
+        #endregion fields
+
+        #region Per worker data
 
         private readonly uint samplingRate;
         private readonly uint bufferSize;
         private readonly Func<int, uint, float> dataSourceLogic;
         private readonly IDataConsumer consumer;
         private readonly SimpleDataProvider owner;
+        private readonly ConcurrentQueue<Message> messages;
+
+        #endregion Per worker data
+
+        #region per run data
 
         private Stopwatch stopwatch;
-        private ConcurrentQueue<Message> messages;
         private volatile int index;
         private Thread WorkerThread;
         private object _lock;
+
+        #endregion per run data
+
+        #region constructor
 
         public SimpleDataProviderWorker(SimpleDataProvider owner, uint samplingRate, uint bufferSize, Func<int, uint, float> dataSourceLogic, IDataConsumer consumer)
         {
@@ -38,18 +52,21 @@ namespace CTProject.Examples
 
             messages = new ConcurrentQueue<Message>();
             index = 0;
-            WorkerThread = new Thread(new ThreadStart(Task));
-
             _lock = new object();
         }
+
+        #endregion constructor
+
+        #region public methods
 
         public void Start()
         {
             lock (_lock)
             {
-                if (WorkerThread.IsAlive)
-                    throw new InvalidOperationException();
+                if (WorkerThread != null)
+                    return;
 
+                WorkerThread = new Thread(new ThreadStart(Task));
                 WorkerThread.Start();
             }
         }
@@ -66,15 +83,19 @@ namespace CTProject.Examples
             }
         }
 
+        #endregion public methods
+
+        #region worker logic
+
         private void Task()
         {
+            IsWorking = true;
             stopwatch = new Stopwatch();
             stopwatch.Start();
             var timestamp = Stopwatch.GetTimestamp();
             owner.OnWorkerStart();
             consumer.DataStreamStarted(timestamp);
-
-            while (true)
+            while (index < 32000000)
             {
                 while (!messages.IsEmpty)
                 {
@@ -84,17 +105,24 @@ namespace CTProject.Examples
                         continue;
                     if (result == Message.Stop)
                     {
-                        owner.OnWorkerStop();
-                        consumer.DataStreamEnded();
+                        Finish();
                         return;
                     }
                 }
 
                 if (ShouldGenerateDataNow())
                     GenerateData();
-
-                WaitForNextBlock();
+                else
+                    WaitForNextBlock();
             }
+            Finish();
+        }
+
+        private void Finish()
+        {
+            IsWorking = false;
+            consumer.DataStreamEnded();
+            owner.OnWorkerStop();
         }
 
         private bool ShouldGenerateDataNow()
@@ -118,10 +146,20 @@ namespace CTProject.Examples
 
         private void WaitForNextBlock()
         {
-            var secondsToWait = bufferSize / (double)(samplingRate * 10); // 1/10 of seconds per buffer
-            secondsToWait = Math.Min(secondsToWait, 0.01666666666f);
-            secondsToWait = Math.Min(secondsToWait, Math.Abs(stopwatch.Elapsed.TotalSeconds - ((index + bufferSize) / (double)samplingRate)));
-            Thread.Sleep((int)(secondsToWait / 1000));
+            var currentTime = stopwatch.Elapsed.TotalSeconds;
+            var timeForNextBuffer = (index + bufferSize) / (double)samplingRate;
+            var quarterBuffer = bufferSize / (samplingRate * 4.0); // 1/4 of buffer
+            var adjustedForNextBuffer = timeForNextBuffer - currentTime + (bufferSize / (samplingRate * 10.0)); // leftover time + 1/10 of buffer
+            var saneValue = 0.5;
+
+            var timeToWait = Math.Min(
+                Math.Min(timeForNextBuffer, quarterBuffer),
+                Math.Min(adjustedForNextBuffer, saneValue)
+                );
+
+            Thread.Sleep((int)(timeToWait * 1000.0));
         }
+
+        #endregion worker logic
     }
 }

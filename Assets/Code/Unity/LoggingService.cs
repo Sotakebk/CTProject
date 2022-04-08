@@ -7,7 +7,25 @@ namespace CTProject.Unity
 {
     public class LoggingService : MonoBehaviour, ILoggingService
     {
+        #region events
+
+        public delegate void LogEventHandler(LogLevel logLevel, object message, string stackTrace);
+
+        public delegate void ExceptionEventHandler(Exception exception);
+
+        public event ExceptionEventHandler ExceptionEvent;
+
+        public event LogEventHandler LogEvent;
+
+        #endregion events
+
+        #region fields
+
         private ConcurrentQueue<Action> actionQueue;
+
+        #endregion fields
+
+        #region Unity calls
 
         private void Start()
         {
@@ -18,6 +36,10 @@ namespace CTProject.Unity
         {
             ProcessMessages();
         }
+
+        #endregion Unity calls
+
+        #region private methods
 
         private void ProcessMessages()
         {
@@ -33,26 +55,7 @@ namespace CTProject.Unity
             }
         }
 
-        #region ILoggingService
-
-        public void Log(LogLevel level, string message)
-        {
-            actionQueue.Enqueue(() => LogInternal(level, message));
-        }
-
-        public void Log(LogLevel level, object message)
-        {
-            actionQueue.Enqueue(() => LogInternal(level, message));
-        }
-
-        public void Log(Exception exception)
-        {
-            actionQueue.Enqueue(() => LogInternal(exception));
-        }
-
-        #endregion ILoggingService
-
-        private void LogInternal(LogLevel level, object message)
+        private void LogInternal(LogLevel level, object message, string stackTrace)
         {
             switch (level)
             {
@@ -68,11 +71,34 @@ namespace CTProject.Unity
                     Debug.LogError(message);
                     return;
             }
+            LogEvent?.Invoke(level, message, stackTrace);
         }
 
         private void LogInternal(Exception exception)
         {
             Debug.LogException(exception);
+            ExceptionEvent?.Invoke(exception);
         }
+
+        #endregion private methods
+
+        #region ILoggingService
+
+        public void Log(LogLevel level, string message)
+        {
+            actionQueue.Enqueue(() => LogInternal(level, message, Environment.StackTrace));
+        }
+
+        public void Log(LogLevel level, object message)
+        {
+            actionQueue.Enqueue(() => LogInternal(level, message, Environment.StackTrace));
+        }
+
+        public void Log(Exception exception)
+        {
+            actionQueue.Enqueue(() => LogInternal(exception));
+        }
+
+        #endregion ILoggingService
     }
 }

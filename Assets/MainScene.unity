@@ -135,6 +135,8 @@ GameObject:
   - component: {fileID: 376084858}
   - component: {fileID: 376084857}
   - component: {fileID: 376084859}
+  - component: {fileID: 376084861}
+  - component: {fileID: 376084860}
   m_Layer: 0
   m_Name: Controller
   m_TagString: Untagged
@@ -152,6 +154,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -195,7 +198,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RegisterDataConsumers:
-  - {fileID: 0}
+  - {fileID: 1339974568}
+--- !u!114 &376084860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 376084855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0697a5587cbc8b747a14dcb72e26231a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DependencyProvider: {fileID: 376084858}
+--- !u!114 &376084861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 376084855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fe66a5fbcceea848bf61c16f5972956, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  registerDataSourceContainers:
+  - {fileID: 376084860}
 --- !u!1 &564657869
 GameObject:
   m_ObjectHideFlags: 0
@@ -275,7 +305,137 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1339974559
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1339974561}
+  - component: {fileID: 1339974567}
+  - component: {fileID: 1339974562}
+  - component: {fileID: 1339974565}
+  - component: {fileID: 1339974563}
+  - component: {fileID: 1339974566}
+  - component: {fileID: 1339974568}
+  m_Layer: 5
+  m_Name: UIView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1339974561
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339974559}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1339974562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339974559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 191782a42a6f5344c8e0527d2e991266, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewAsset: {fileID: 9197481963319205126, guid: 78b671498541e0c42b47dd92dfc67aec, type: 3}
+  uiRoot: {fileID: 1339974567}
+  subViewPresenters:
+  - {fileID: 1339974565}
+  - {fileID: 1339974563}
+  - {fileID: 1339974568}
+  statusPresenter: {fileID: 1339974566}
+--- !u!114 &1339974563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339974559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74719db686bf64544924cf56cfa7ca23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewAsset: {fileID: 9197481963319205126, guid: 082392eb2b46e3c408c5785032a84273, type: 3}
+  dataSourceContainerAggregate: {fileID: 376084861}
+  dataBroadcaster: {fileID: 376084859}
+--- !u!114 &1339974565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339974559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebdae1641e94fa24ba95097db3789017, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewAsset: {fileID: 9197481963319205126, guid: 78fe7014ac7d64847b8c1cace459e5bc, type: 3}
+--- !u!114 &1339974566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339974559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7010e7cd47849d40949b92c2e024a4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewAsset: {fileID: 9197481963319205126, guid: 2b1ec29319523294aa11cedd363a83ca, type: 3}
+  dataBroadcaster: {fileID: 376084859}
+--- !u!114 &1339974567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339974559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: f8066ef0f164d7241b2f0a8187c89816, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 0}
+  m_SortingOrder: 0
+--- !u!114 &1339974568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339974559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ae188f75bee689499e96be7c6b240b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewAsset: {fileID: 9197481963319205126, guid: e6fd7f2254abbf14bbb9062acab410b4, type: 3}
+  loggingService: {fileID: 376084857}
+  logTemplate: {fileID: 9197481963319205126, guid: 48a1ae46e318a2e489470584832aa90f, type: 3}

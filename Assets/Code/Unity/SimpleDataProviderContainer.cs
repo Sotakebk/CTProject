@@ -1,28 +1,50 @@
 using CTProject.Examples;
+using CTProject.Infrastructure;
 using System.Linq;
 using UnityEngine;
 
 namespace CTProject.Unity
 {
-    public class SimpleDataProviderContainer : MonoBehaviour
+    public class SimpleDataProviderContainer : MonoBehaviour, IDataProviderContainer
     {
-        public DependencyProvider DependencyProvider { get; set; }
+        #region properties
 
-        public SimpleDataProvider SimpleDataProvider { get; private set; }
+        public string DataProviderName => "Simple data provider";
 
-        private void Start()
+        #endregion properties
+
+        #region fields
+
+        // set from Unity
+        [SerializeField]
+        private DependencyProvider DependencyProvider;
+
+        private SimpleDataProvider dataProvider;
+
+        #endregion fields
+
+        #region IDataProviderContainer
+
+        public IDataProvider GetDataProvider()
         {
-            SimpleDataProvider = new SimpleDataProvider();
+            if (dataProvider == null)
+                PrepareDataProvider();
 
-            SimpleDataProvider.LoadDependencies(DependencyProvider);
-
-            var channel = SimpleDataProvider.GetAvailableChannels().First();
-            var bufferSize = SimpleDataProvider.GetAvailableBufferSizes().Last();
-            var samplingRate = SimpleDataProvider.GetAvailableSamplingRates().Last();
-
-            SimpleDataProvider.SetChannel(channel.ID);
-            SimpleDataProvider.SetBufferSize(bufferSize);
-            SimpleDataProvider.SetSamplingRate(samplingRate);
+            return dataProvider;
         }
+
+        #endregion IDataProviderContainer
+
+        #region private methods
+
+        private void PrepareDataProvider()
+        {
+            dataProvider = new SimpleDataProvider();
+
+            dataProvider.LoadDependencies(DependencyProvider);
+            dataProvider.Initialize();
+        }
+
+        #endregion private methods
     }
 }

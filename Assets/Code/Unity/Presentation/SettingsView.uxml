@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Code/Unity/Presentation/Styles.uss?fileID=7433441132597879392&amp;guid=82db61c79aac2a1418553cad495ff218&amp;type=3#Styles" />
+    <ui:VisualElement class="viewContainer backgroundPanel">
+        <ui:DropdownField label="Selected Data Source" index="-1" choices="" name="dataSourceDropdown" />
+        <ui:VisualElement name="dataSourceSettings" class="backgroundPanel" style="flex-grow: 1; align-items: stretch; flex-wrap: nowrap; flex-direction: column; justify-content: flex-start; margin-top: 5px; margin-left: 3px; margin-right: 3px; margin-bottom: 3px;">
+            <ui:DropdownField label="Selected Channel" index="-1" choices="" name="selectedChannelDropdown" />
+            <ui:VisualElement name="VisualElement" style="flex-direction: row;">
+                <ui:VisualElement name="leftColumn" style="flex-grow: 1; flex-shrink: 0;">
+                    <ui:DropdownField label="Selected Buffer Size" index="-1" choices="" name="selectedBufferSizeDropdown" />
+                </ui:VisualElement>
+                <ui:VisualElement name="rightColumn" style="flex-grow: 1; flex-shrink: 0;">
+                    <ui:DropdownField label="Selected Sampling Rate" index="-1" choices="" name="selectedSamplingRateDropdown" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

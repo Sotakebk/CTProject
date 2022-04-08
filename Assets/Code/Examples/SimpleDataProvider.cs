@@ -6,26 +6,101 @@ namespace CTProject.Examples
 {
     public class SimpleDataProvider : IDataProvider, IDependencyConsumer
     {
-        #region properties
-
-        public DataProviderState State { get; private set; }
-        public uint BufferSize { get; private set; }
-        public uint SamplingRate { get; private set; }
-        public uint SelectedChannel { get; private set; }
-
-        #endregion properties
-
         #region Dependencies
 
         private ILoggingService LoggingService;
 
         #endregion Dependencies
 
+        #region properties
+
+        public DataProviderState State { get; private set; }
+
+        public IChannelInfo SelectedChannel
+        {
+            get
+            {
+                return _selectedChannel;
+            }
+            set
+            {
+                var simpleChannelInfo = GetAvailableChannels()
+                    .FirstOrDefault(c => c.UniqueName == value.UniqueName);
+
+                if (simpleChannelInfo == null)
+                    throw new ArgumentException();
+
+                bool working = State == DataProviderState.Working;
+                if (working)
+                    Stop();
+
+                _selectedChannel = simpleChannelInfo as SimpleChannelInfo;
+                consumer?.OnSettingsChange(this);
+
+                if (working)
+                    Start();
+            }
+        }
+
+        public uint SelectedSamplingRate
+        {
+            get
+            {
+                return _selectedSamplingRate;
+            }
+            set
+            {
+                if (!GetAvailableSamplingRates().Contains(value))
+                    throw new ArgumentException();
+
+                bool working = State == DataProviderState.Working;
+                if (working)
+                    Stop();
+
+                _selectedSamplingRate = value;
+                consumer?.OnSettingsChange(this);
+
+                if (working)
+                    Start();
+            }
+        }
+
+        public uint SelectedBufferSize
+        {
+            get
+            {
+                return _selectedBufferSize;
+            }
+            set
+            {
+                if (!GetAvailableBufferSizes().Contains(value))
+                    throw new ArgumentException();
+
+                bool working = State == DataProviderState.Working;
+                if (working)
+                    Stop();
+
+                _selectedBufferSize = value;
+                consumer?.OnSettingsChange(this);
+
+                if (working)
+                    Start();
+            }
+        }
+
+        #endregion properties
+
         #region fields
+
+        private SimpleChannelInfo _selectedChannel;
+        private uint _selectedSamplingRate;
+        private uint _selectedBufferSize;
 
         private Func<int, uint, float>[] sources;
         private IDataConsumer consumer;
         private SimpleDataProviderWorker worker;
+        private bool initializing = false;
+        private SimpleChannelInfo[] cachedChannelInfos;
 
         #endregion fields
 
@@ -42,10 +117,10 @@ namespace CTProject.Examples
 
         public void Initialize()
         {
-            if (State != DataProviderState.Uninitialized)
-            {
-                LoggingService?.Log(new InvalidOperationException());
-            }
+            if (State != DataProviderState.Uninitialized || initializing)
+                throw new InvalidOperationException();
+
+            initializing = true;
 
             sources = new Func<int, uint, float>[]
             {
@@ -55,105 +130,52 @@ namespace CTProject.Examples
             };
 
             State = DataProviderState.Initialized;
+
+            SelectedBufferSize = GetAvailableBufferSizes().First();
+            SelectedSamplingRate = GetAvailableSamplingRates().First();
+            SelectedChannel = GetAvailableChannels().First();
         }
 
-        public ChannelInfo[] GetAvailableChannels()
+        public IChannelInfo[] GetAvailableChannels()
         {
-            if (sources == null)
-            {
-                LoggingService?.Log(new InvalidOperationException());
-                return null;
-            }
+            if (cachedChannelInfos != null)
+                return cachedChannelInfos.Select(c => c as IChannelInfo).ToArray();
 
-            var ci = new ChannelInfo[sources.Length];
-            for (int x = 0; x < sources.Length; x++)
-            {
-                ci[x] = new ChannelInfo()
-                {
-                    Name = sources[x].Method.Name,
-                    ID = (uint)x
-                };
-            }
+            if (State == DataProviderState.Uninitialized)
+                throw new InvalidOperationException();
 
-            return ci;
+            cachedChannelInfos = sources
+                .Select((s, index) => new SimpleChannelInfo(s.Method.Name, (uint)index))
+                .ToArray();
+
+            return cachedChannelInfos.Select(c => c as IChannelInfo).ToArray();
         }
 
-        public void SetChannel(uint ChannelID)
-        {
-            bool working = State == DataProviderState.Working;
-            if (working)
-                Stop();
+        public uint[] GetAvailableBufferSizes() => new uint[] { 128, 256, 512, 1024, 2048, 4096 };
 
-            SelectedChannel = ChannelID;
-            consumer?.OnSettingsChange(this);
-
-            if (working)
-                Start();
-        }
+        public uint[] GetAvailableSamplingRates() => new uint[] { 1024, 2048, 4096, 8192, 16384 };
 
         public float GetMaxValue() => 1f;
 
         public float GetMinValue() => -1f;
 
-        public uint[] GetAvailableBufferSizes() => new uint[] { 128, 256, 512, 1024, 2048, 4096 };
-
-        public void SetBufferSize(uint BufferSize)
-        {
-            if (!GetAvailableBufferSizes().Contains(BufferSize))
-            {
-                LoggingService?.Log(new ArgumentException(nameof(BufferSize)));
-                return;
-            }
-
-            bool working = State == DataProviderState.Working;
-            if (working)
-                Stop();
-
-            this.BufferSize = BufferSize;
-            consumer?.OnSettingsChange(this);
-
-            if (working)
-                Start();
-        }
-
-        public uint[] GetAvailableSamplingRates() => new uint[] { 1024, 2048, 4096, 8192, 16384, 32768 };
-
-        public void SetSamplingRate(uint SamplingRate)
-        {
-            if (!GetAvailableSamplingRates().Contains(SamplingRate))
-            {
-                LoggingService?.Log(new ArgumentException(nameof(SamplingRate)));
-                return;
-            }
-
-            bool working = State == DataProviderState.Working;
-            if (working)
-                Stop();
-
-            this.SamplingRate = SamplingRate;
-            consumer?.OnSettingsChange(this);
-
-            if (working)
-                Start();
-        }
-
-        public void Reset()
-        {
-            Stop();
-            Start();
-        }
-
         public void Start()
         {
             worker?.Stop();
             consumer?.ResetIndex();
-            worker = new SimpleDataProviderWorker(this, SamplingRate, BufferSize, sources[SelectedChannel], consumer);
+            worker = new SimpleDataProviderWorker(
+                owner: this,
+                samplingRate: SelectedSamplingRate,
+                bufferSize: SelectedBufferSize,
+                dataSourceLogic: sources[((int?)(SelectedChannel as SimpleChannelInfo)?.ID) ?? 0],
+                consumer: consumer);
             worker.Start();
         }
 
         public void Stop()
         {
-            worker.Stop();
+            if (State == DataProviderState.Working)
+                worker.Stop();
         }
 
         public void Subscribe(IDataConsumer consumer)
@@ -202,6 +224,8 @@ namespace CTProject.Examples
 
         #endregion SimpleDataPRoviderWorker callbacks
 
+        #region worker delegate methods for different channels
+
         private float Sin(int x, uint SamplingRate)
         {
             double position = (x * Math.PI) / (SamplingRate * 2);
@@ -218,5 +242,7 @@ namespace CTProject.Examples
             double position = (x * Math.PI) / (SamplingRate * 2);
             return (float)(position - Math.Ceiling(position));
         }
+
+        #endregion worker delegate methods for different channels
     }
 }

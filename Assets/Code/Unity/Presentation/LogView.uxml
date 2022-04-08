@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Code/Unity/Presentation/Styles.uss?fileID=7433441132597879392&amp;guid=82db61c79aac2a1418553cad495ff218&amp;type=3#Styles" />
+    <ui:VisualElement class="viewContainer backgroundPanel">
+        <ui:VisualElement style="flex-direction: row;">
+            <ui:Toggle label="Show Engine Logs" name="showEngineLogsToggle" />
+            <ui:Toggle label="Log all DataSource calls" name="logDataSourceCallsToggle" />
+            <ui:Toggle label="Save stack trace" name="saveStackTraceToggle" />
+        </ui:VisualElement>
+        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" horizontal-scroller-visibility="Auto" vertical-scroller-visibility="AlwaysVisible" class="backgroundPanel" style="flex-grow: 1;">
+            <ui:VisualElement name="logsContainer" style="flex-direction: column-reverse;" />
+        </ui:ScrollView>
+    </ui:VisualElement>
+</ui:UXML>

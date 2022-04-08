@@ -11,32 +11,66 @@ namespace CTProject.Infrastructure
 
     public interface IDataProvider
     {
+        /// <summary>
+        /// The state of this IDataProvider.
+        /// </summary>
         DataProviderState State { get; }
 
-        ChannelInfo[] GetAvailableChannels();
+        /// <summary>
+        /// Get available channels. Value is expected to be prepared and not change after Initialize().
+        /// </summary>
+        /// <returns></returns>
+        IChannelInfo[] GetAvailableChannels();
 
-        void SetChannel(uint ChannelID);
+        IChannelInfo SelectedChannel { get; set; }
 
+        /// <summary>
+        /// Get available sampling rates. Value is expected to be prepared and not change after Initialize().
+        /// </summary>
+        /// <returns></returns>
         uint[] GetAvailableSamplingRates();
 
-        void SetSamplingRate(uint SamplingRate);
+        uint SelectedSamplingRate { get; set; }
 
+        /// <summary>
+        /// Get available buffer sizes. Value is expected to be prepared and not change after Initialize().
+        /// </summary>
+        /// <returns></returns>
         uint[] GetAvailableBufferSizes();
 
-        void SetBufferSize(uint BufferSize);
+        uint SelectedBufferSize { get; set; }
 
+        /// <summary>
+        /// Smallest expected value in the buffer sent in ReceiveData calls as a float.
+        /// </summary>
+        /// <returns></returns>
         float GetMinValue();
 
+        /// <summary>
+        /// Greatest expected value in the buffer sent in ReceiveData calls as a float.
+        /// </summary>
+        /// <returns></returns>
         float GetMaxValue();
 
+        /// <summary>
+        /// Set, or change data calls receiver. Can be called with null to clear, after which no more calls are expected.
+        /// </summary>
+        /// <param name="consumer"></param>
         void Subscribe(IDataConsumer consumer);
 
+        /// <summary>
+        /// Initialize the source, device or anything else.
+        /// </summary>
         void Initialize();
 
+        /// <summary>
+        /// Start the data stream. If stream is already opened, don't start another.
+        /// </summary>
         void Start();
 
+        /// <summary>
+        /// Stop the data stream. Ignore if there is no stream open.
+        /// </summary>
         void Stop();
-
-        void Reset();
     }
 }
