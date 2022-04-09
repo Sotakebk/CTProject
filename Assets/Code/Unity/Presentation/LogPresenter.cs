@@ -71,7 +71,7 @@ namespace CTProject.Unity.Presentation
         public void OnSettingsChange(IDataProvider source)
         {
             if (LogAllDataSourceCalls)
-                AddLogElement(LogLevel.Info, $"DataProvider ResetIndex message received from source {source.GetType().Name}", null);
+                AddLogElement(LogLevel.Info, $"DataProvider OnSettingsChange message received from source {source.GetType().Name}", null);
         }
 
         public void ReceiveData(ulong index, float[] data)
