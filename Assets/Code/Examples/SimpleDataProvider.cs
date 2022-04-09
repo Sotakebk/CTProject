@@ -162,7 +162,6 @@ namespace CTProject.Examples
         public void Start()
         {
             worker?.Stop();
-            consumer?.ResetIndex();
             worker = new SimpleDataProviderWorker(
                 owner: this,
                 samplingRate: SelectedSamplingRate,

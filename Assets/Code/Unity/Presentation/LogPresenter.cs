@@ -68,12 +68,6 @@ namespace CTProject.Unity.Presentation
 
         #region IDataConsumer
 
-        public void ResetIndex()
-        {
-            if (LogAllDataSourceCalls)
-                AddLogElement(LogLevel.Info, "DataProvider ResetIndex message received", null);
-        }
-
         public void OnSettingsChange(IDataProvider source)
         {
             if (LogAllDataSourceCalls)

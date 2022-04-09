@@ -43,11 +43,6 @@ namespace CTProject.Unity
             graphPresenter.InsertData((int)index, data);
         }
 
-        public void ResetIndex()
-        {
-            graphPresenter.Clear();
-        }
-
         #endregion IDataConsumer
     }
 }

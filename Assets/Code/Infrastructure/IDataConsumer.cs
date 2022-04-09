@@ -3,11 +3,6 @@ namespace CTProject.Infrastructure
     public interface IDataConsumer
     {
         /// <summary>
-        /// Call as needed, when underlying iterator is returned back to start.
-        /// </summary>
-        void ResetIndex();
-
-        /// <summary>
         /// Call if any of the standard IDataProvider settings are changed.
         /// </summary>
         /// <param name="source">IDataProvider of which settings have changed.</param>

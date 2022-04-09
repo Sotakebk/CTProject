@@ -62,10 +62,6 @@ namespace CTProject.Unity
             return cachedViewRect.Value;
         }
 
-        public void ResetIndex()
-        {
-        }
-
         public void OnSettingsChange(IDataProvider source)
         {
         }

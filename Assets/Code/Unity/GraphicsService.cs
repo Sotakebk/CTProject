@@ -122,11 +122,6 @@ namespace CTProject.Unity
             MaxTime = ((int)index + data.Length) / ((float)SamplingRate);
         }
 
-        public void ResetIndex()
-        {
-            MaxTime = 0;
-        }
-
         #endregion IDataConsumer
     }
 }

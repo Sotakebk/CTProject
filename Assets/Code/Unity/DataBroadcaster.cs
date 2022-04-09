@@ -72,11 +72,6 @@ namespace CTProject.Unity
             actionQueue.Enqueue(() => PropagateReceiveData(index, data));
         }
 
-        public void ResetIndex()
-        {
-            actionQueue.Enqueue(() => PropagateResetIndex());
-        }
-
         public void DataStreamStarted(long tickCountOnStreamStart)
         {
             actionQueue.Enqueue(() => PropagateDataStreamStarted(tickCountOnStreamStart));
@@ -115,12 +110,6 @@ namespace CTProject.Unity
         {
             foreach (var dc in dataConsumers)
                 dc.ReceiveData(index, data);
-        }
-
-        private void PropagateResetIndex()
-        {
-            foreach (var dc in dataConsumers)
-                dc.ResetIndex();
         }
 
         private void PropagateDataStreamStarted(long tickCountOnStreamStart)
