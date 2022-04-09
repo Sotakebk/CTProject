@@ -93,7 +93,12 @@ namespace CTProject.Unity
 
         public float IndexToSeconds(int index)
         {
-            return (float)(index / (double)SamplingRate) * TimeScale;
+            return (float)(index / (double)SamplingRate);
+        }
+
+        public float SecondsToPosition(float seconds)
+        {
+            return seconds * timeScale;
         }
 
         #endregion public methods

@@ -35,10 +35,10 @@ namespace CTProject.Unity
             cachedViewRect = null;
 
             if (TrackNewData && going)
-                TargetTimePosition += Time.deltaTime * graphicsService.TimeScale;
+                TargetTimePosition += Time.deltaTime;
 
             transform.position = new Vector3(
-                Mathf.Lerp(transform.position.x, TargetTimePosition, 0.1f),
+                Mathf.Lerp(transform.position.x, graphicsService.SecondsToPosition(TargetTimePosition), 0.1f),
                 Mathf.Lerp(transform.position.y, TargetHeightPosition, 0.1f),
                 transform.position.z);
         }
