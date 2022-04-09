@@ -1,4 +1,24 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="Styles.uss" />
-    <ui:VisualElement class="viewContainer" />
+    <Style src="project://database/Assets/Code/Unity/Presentation/Styles.uss?fileID=7433441132597879392&amp;guid=82db61c79aac2a1418553cad495ff218&amp;type=3#Styles" />
+    <ui:VisualElement class="viewContainer">
+        <ui:VisualElement class="backgroundPanel" style="flex-direction: row; align-items: center;">
+            <ui:Toggle label="Track new data" name="trackNewDataToggle" value="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;" />
+            <ui:VisualElement style="flex-grow: 1;">
+                <ui:Slider picking-mode="Ignore" label="Line width" value="0.2" high-value="1" name="lineWidthSlider" style="flex-grow: 1; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Slider picking-mode="Ignore" value="0.5" high-value="1" name="timeScaleSlider" class="backgroundPanel" style="margin-left: 4px; margin-right: 4px; margin-top: 4px; margin-bottom: 4px;" />
+        <ui:VisualElement style="flex-direction: row; padding-top: 10px; padding-bottom: 10px; flex-grow: 1;">
+            <ui:Slider picking-mode="Ignore" value="5" high-value="10" direction="Vertical" name="graphScaleSlider" class="backgroundPanel" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: auto;" />
+            <ui:VisualElement style="flex-grow: 1;" />
+            <ui:Slider picking-mode="Ignore" value="0.5" high-value="1" direction="Vertical" name="graphPositionSlider" class="backgroundPanel" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: auto;" />
+        </ui:VisualElement>
+        <ui:VisualElement class="backgroundPanel" style="flex-direction: row; align-items: center;">
+            <ui:Label text="0" display-tooltip-when-elided="true" name="startTimeLabel" style="width: 50px; -unity-text-align: upper-right; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;" />
+            <ui:VisualElement style="flex-grow: 1;">
+                <ui:Slider picking-mode="Ignore" value="0" high-value="100" name="timePositionSlider" style="flex-grow: 1; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;" />
+            </ui:VisualElement>
+            <ui:Label text="0" display-tooltip-when-elided="true" name="endTimeLabel" style="width: 50px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
 </ui:UXML>

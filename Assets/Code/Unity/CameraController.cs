@@ -1,20 +1,30 @@
+using CTProject.Infrastructure;
 using UnityEngine;
 
 namespace CTProject.Unity
 {
-    public class CameraController : MonoBehaviour
+    public class CameraController : MonoBehaviour, IDataConsumer
     {
         #region properties
 
-        // set from Unity
-        [SerializeField]
-        private new Camera camera;
+        public bool TrackNewData { get; set; }
+
+        public float TargetTimePosition { get; set; }
+        public float TargetHeightPosition { get; set; }
 
         #endregion properties
 
         #region fields
 
+        // set from Unity
+        [SerializeField]
+        private new Camera camera;
+
+        [SerializeField]
+        private GraphicsService graphicsService;
+
         private Rect? cachedViewRect;
+        private bool going;
 
         #endregion fields
 
@@ -23,6 +33,14 @@ namespace CTProject.Unity
         private void Update()
         {
             cachedViewRect = null;
+
+            if (TrackNewData && going)
+                TargetTimePosition += Time.deltaTime * graphicsService.TimeScale;
+
+            transform.position = new Vector3(
+                Mathf.Lerp(transform.position.x, TargetTimePosition, 0.1f),
+                Mathf.Lerp(transform.position.y, TargetHeightPosition, 0.1f),
+                transform.position.z);
         }
 
         #endregion Unity calls
@@ -42,6 +60,30 @@ namespace CTProject.Unity
 
             cachedViewRect = new Rect(min, max);
             return cachedViewRect.Value;
+        }
+
+        public void ResetIndex()
+        {
+        }
+
+        public void OnSettingsChange(IDataProvider source)
+        {
+        }
+
+        public void ReceiveData(ulong index, float[] data)
+        {
+            if (TrackNewData)
+                TargetTimePosition = graphicsService.IndexToSeconds((int)index + data.Length);
+        }
+
+        public void DataStreamStarted(long tickCountOnStreamStart)
+        {
+            going = true;
+        }
+
+        public void DataStreamEnded()
+        {
+            going = false;
         }
 
         #endregion public methods

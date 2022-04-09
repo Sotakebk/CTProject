@@ -156,8 +156,8 @@ namespace CTProject.Examples
                 Math.Min(timeForNextBuffer, quarterBuffer),
                 Math.Min(adjustedForNextBuffer, saneValue)
                 );
-
-            Thread.Sleep((int)(timeToWait * 1000.0));
+            var millisecondsToWait = Math.Clamp((int)(timeToWait * 1000.0), 1, int.MaxValue);
+            Thread.Sleep(millisecondsToWait);
         }
 
         #endregion worker logic

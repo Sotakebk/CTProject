@@ -50,7 +50,7 @@ namespace CTProject.Unity.Presentation
                 showViewButton.clicked += () => OpenView(presenter);
                 buttonContainer.Add(showViewButton);
             }
-            OpenView(null);
+            OpenView(subViewPresenters[0]);
 
             statusContainer = view.Q(name: "statusContainer");
             statusPresenter.InstantiateView(statusContainer);

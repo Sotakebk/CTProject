@@ -1,6 +1,5 @@
 using CTProject.Examples;
 using CTProject.Infrastructure;
-using System.Linq;
 using UnityEngine;
 
 namespace CTProject.Unity

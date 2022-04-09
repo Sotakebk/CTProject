@@ -151,9 +151,9 @@ namespace CTProject.Examples
             return cachedChannelInfos.Select(c => c as IChannelInfo).ToArray();
         }
 
-        public uint[] GetAvailableBufferSizes() => new uint[] { 128, 256, 512, 1024, 2048, 4096 };
+        public uint[] GetAvailableBufferSizes() => new uint[] { 64, 128, 256, 512, 1024, 2048, 4096 };
 
-        public uint[] GetAvailableSamplingRates() => new uint[] { 1024, 2048, 4096, 8192, 16384 };
+        public uint[] GetAvailableSamplingRates() => new uint[] { 256, 512, 1024, 2048, 4096, 8192, 16384 };
 
         public float GetMaxValue() => 1f;
 
@@ -228,7 +228,7 @@ namespace CTProject.Examples
 
         private float Sin(int x, uint SamplingRate)
         {
-            double position = (x * Math.PI) / (SamplingRate * 2);
+            double position = (x * Math.PI) / (SamplingRate * 2.0);
             return (float)Math.Sin(position);
         }
 
@@ -239,8 +239,8 @@ namespace CTProject.Examples
 
         private float Saw(int x, uint SamplingRate)
         {
-            double position = (x * Math.PI) / (SamplingRate * 2);
-            return (float)(position - Math.Ceiling(position));
+            double position = (x * Math.PI) / (SamplingRate * 4.0);
+            return (float)((position - Math.Floor(position)) * 2.0 - 1.0);
         }
 
         #endregion worker delegate methods for different channels
