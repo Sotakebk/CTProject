@@ -35,7 +35,7 @@ namespace CTProject.DataAcquisition.Communication
             }
             catch (SocketException ex)
             {
-                LoggingService?.Log(LogLevel.Info, $"Unable to connect to {address}:{port} - {ex.Message}");
+                LoggingService?.Log(LogLevel.Info, ex.Message);
                 Thread.Sleep(1000);
             }
         }

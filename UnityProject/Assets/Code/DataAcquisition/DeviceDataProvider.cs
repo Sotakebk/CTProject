@@ -27,6 +27,10 @@ namespace CTProject.DataAcquisition
             State = DataProviderState.Uninitialized;
             server = new TCPServer(DefaultAddress.Address, DefaultAddress.Port);
             ResetCache();
+
+            server.OnConnected = OnClientConnected;
+            server.OnDisconnected = OnClientDisconnected;
+            server.OnMessageReceived = OnMessageReceived;
         }
 
         #endregion ctor
@@ -100,9 +104,6 @@ namespace CTProject.DataAcquisition
             if (State != DataProviderState.Uninitialized)
                 return;
 
-            server.OnConnected = OnClientConnected;
-            server.OnDisconnected = OnClientDisconnected;
-            server.OnMessageReceived = OnMessageReceived;
             server.Start();
 
             State = DataProviderState.NotReady;
