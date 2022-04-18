@@ -44,8 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\unityproject\assets\code\dataacquisition\communication\BinaryMessage.cs">
-      <Link>CTProject\DataAcquisition\Communication\BinaryMessage.cs</Link>
+    <Compile Include="..\..\UnityProject\Assets\Code\DataAcquisition\Communication\Messages.cs">
+      <Link>CTProject\DataAcquisition\Communication\Messages.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\dataacquisition\communication\TCPBase.cs">
       <Link>CTProject\DataAcquisition\Communication\TCPBase.cs</Link>

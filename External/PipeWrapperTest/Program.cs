@@ -19,22 +19,23 @@ namespace PipeWrapperTest
             server.LoadDependencies(DependencyProvider.Instance);
             client.LoadDependencies(DependencyProvider.Instance);
 
-            server.OnMessageReceived = (msg) => Console.WriteLine($"Server got: {msg.String}");
-            client.OnMessageReceived = (msg) => Console.WriteLine($"Client got: {msg.String}");
-
             server.OnConnected = () =>
             {
-                server.PushMessage(new BinaryMessage() { String = $"Hello from the server side!" });
-                client.PushMessage(new BinaryMessage() { String = $"Hello from the client side!" });
+                server.PushMessage(new StringMessage() { MessageContent = $"Hello from the server side!" }.Serialize());
+                client.PushMessage(new StringMessage() { MessageContent = $"Hello from the client side!" }.Serialize());
             };
 
             var _lock = new object();
-            var i = 1;
+            var i = 3;
             var running = true;
-            server.OnMessageReceived = (msg) => CloseBoth();
-            client.OnMessageReceived = (msg) => CloseBoth();
-            void CloseBoth()
+            server.OnMessageReceived = (msg) => CloseBoth(msg, true);
+            client.OnMessageReceived = (msg) => CloseBoth(msg, false);
+            void CloseBoth(BinaryMessage msg, bool isServer)
             {
+                var stringMessage = MessageFactory.GetMessageFromBinary<StringMessage>(msg);
+                var side = isServer ? "Server" : "Client";
+                Console.WriteLine($"{side} got: {stringMessage.MessageContent}");
+
                 lock (_lock)
                 {
                     i--;
