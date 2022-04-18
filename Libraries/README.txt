@@ -1,0 +1,1 @@
+Please put NationalInstruments.DAQmx.dll in this folder.

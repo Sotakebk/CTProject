@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32228.343
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAQProxy", "DAQProxy\DAQProxy.csproj", "{59A6DE4D-35B1-4840-8E65-5B3D32331572}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPTest", "PipeWrapperTest\TCPTest.csproj", "{267F9F5D-678D-4E6D-B483-B6767CF02972}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{59A6DE4D-35B1-4840-8E65-5B3D32331572}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59A6DE4D-35B1-4840-8E65-5B3D32331572}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59A6DE4D-35B1-4840-8E65-5B3D32331572}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59A6DE4D-35B1-4840-8E65-5B3D32331572}.Release|Any CPU.Build.0 = Release|Any CPU
+		{267F9F5D-678D-4E6D-B483-B6767CF02972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{267F9F5D-678D-4E6D-B483-B6767CF02972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{267F9F5D-678D-4E6D-B483-B6767CF02972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{267F9F5D-678D-4E6D-B483-B6767CF02972}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B1F53471-97CB-4201-9065-074BF0B9323C}
+	EndGlobalSection
+EndGlobal
