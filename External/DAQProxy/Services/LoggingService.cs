@@ -9,17 +9,17 @@ namespace DAQProxy.Services
 
         public void Log(LogLevel level, string message)
         {
-            pump.Do(() => Console.WriteLine($"{level} {message}"));
+            pump?.Do(() => Console.WriteLine($"{level} {message}"));
         }
 
         public void Log(LogLevel level, object message)
         {
-            pump.Do(() => Console.WriteLine($"{level} {message}"));
+            pump?.Do(() => Console.WriteLine($"{level} {message}"));
         }
 
         public void Log(Exception exception)
         {
-            pump.Do(() => Console.WriteLine($"EXCEPTION! {exception}"));
+            pump?.Do(() => Console.WriteLine($"EXCEPTION! {exception}"));
         }
 
         public LoggingService()

@@ -10,6 +10,8 @@ namespace CTProject.DataAcquisition.Communication
     {
         protected ILoggingService LoggingService;
 
+        public abstract string TCPSideName { get; }
+
         public bool IsOpen { get; set; }
         protected abstract bool IsConnected { get; }
 
@@ -54,13 +56,14 @@ namespace CTProject.DataAcquisition.Communication
         {
             lock (_lock)
             {
+                LoggingService?.Log(LogLevel.Info, $"{TCPSideName} stopping...");
                 IsOpen = false;
             }
         }
 
         protected void DoWork()
         {
-            LoggingService?.Log(LogLevel.Info, $"TCP worker starting!");
+            LoggingService?.Log(LogLevel.Info, $"{TCPSideName} worker starting!");
             lastMessageDate = DateTime.Now;
             while (IsOpen)
             {
@@ -78,8 +81,8 @@ namespace CTProject.DataAcquisition.Communication
                 }
                 catch (Exception ex)
                 {
-                    LoggingService?.Log(LogLevel.Warning, $"TCP worker resetting, cause: {ex.Message}");
-                    Reset();
+                    LoggingService?.Log(LogLevel.Warning, $"{TCPSideName} resetting, cause: {ex.Message}");
+                    Reset(true);
                     OnDisconnected?.Invoke();
                 }
 
@@ -87,7 +90,7 @@ namespace CTProject.DataAcquisition.Communication
             }
             WorkerStop();
             OnDisconnected?.Invoke();
-            LoggingService?.Log(LogLevel.Info, $"TCP worker stopped.");
+            LoggingService?.Log(LogLevel.Info, $"{TCPSideName} stopped.");
         }
 
         protected abstract void WorkerStop();
@@ -95,7 +98,7 @@ namespace CTProject.DataAcquisition.Communication
         protected virtual void Connect()
         {
             lastMessageDate = DateTime.Now;
-            Reset();
+            Reset(false);
             OnConnected?.Invoke();
         }
 
@@ -136,7 +139,7 @@ namespace CTProject.DataAcquisition.Communication
             }
         }
 
-        protected virtual void Reset()
+        protected virtual void Reset(bool resetTCP = true)
         {
             toSendQueue = new ConcurrentQueue<BinaryMessage>();
         }

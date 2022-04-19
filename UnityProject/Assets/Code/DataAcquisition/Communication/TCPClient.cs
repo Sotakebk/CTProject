@@ -9,6 +9,7 @@ namespace CTProject.DataAcquisition.Communication
     public class TCPClient : TCPBase, IDisposable
     {
         protected override bool IsConnected => Client?.Connected ?? false;
+        public override string TCPSideName => "Client";
 
         protected override NetworkStream NetworkStream => Client?.GetStream();
 
@@ -29,10 +30,10 @@ namespace CTProject.DataAcquisition.Communication
             {
                 Client?.Dispose();
                 Client = new TcpClient();
-                LoggingService?.Log(LogLevel.Info, $"Trying to connect to {address}:{port}");
+                LoggingService?.Log(LogLevel.Info, $"{TCPSideName} trying to connect to {address}:{port}");
                 Client.Connect(address, port);
+                LoggingService?.Log(LogLevel.Info, $"{TCPSideName} connected successfully!");
                 base.Connect();
-                LoggingService?.Log(LogLevel.Info, $"Client connected successfully!");
             }
             catch (SocketException ex)
             {
@@ -57,11 +58,14 @@ namespace CTProject.DataAcquisition.Communication
             Dispose();
         }
 
-        protected override void Reset()
+        protected override void Reset(bool ResetTCP)
         {
             base.Reset();
-            Client?.Close();
-            Client = null;
+            if (ResetTCP)
+            {
+                Client?.Close();
+                Client = null;
+            }
         }
     }
 }

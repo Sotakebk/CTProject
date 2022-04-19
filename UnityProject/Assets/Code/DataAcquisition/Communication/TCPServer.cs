@@ -8,6 +8,7 @@ namespace CTProject.DataAcquisition.Communication
     public class TCPServer : TCPBase
     {
         protected override bool IsConnected => CurrentClient?.Connected ?? false;
+        public override string TCPSideName => "Server";
 
         protected override NetworkStream NetworkStream => CurrentClient?.GetStream();
 
@@ -31,14 +32,14 @@ namespace CTProject.DataAcquisition.Communication
             {
                 DateTime until = DateTime.Now.AddSeconds(10);
                 Server.Start();
-                LoggingService?.Log(LogLevel.Info, $"Listening on {address}:{port}");
+                LoggingService?.Log(LogLevel.Info, $"{TCPSideName} listening on {address}:{port}");
                 while (DateTime.Now < until)
                 {
                     if (Server.Pending())
                     {
                         CurrentClient?.Dispose();
                         CurrentClient = Server.AcceptTcpClient();
-                        LoggingService?.Log(LogLevel.Info, $"Client connected: {CurrentClient.Client.RemoteEndPoint}");
+                        LoggingService?.Log(LogLevel.Info, $"{TCPSideName} connected: {CurrentClient.Client.RemoteEndPoint}");
                         base.Connect();
                         break;
                     }
@@ -47,10 +48,6 @@ namespace CTProject.DataAcquisition.Communication
             catch (Exception ex)
             {
                 LoggingService?.Log(LogLevel.Info, $"Exception when listening for clients on {address}:{port} {ex}");
-            }
-            finally
-            {
-                Server.Stop();
             }
         }
 
@@ -65,13 +62,6 @@ namespace CTProject.DataAcquisition.Communication
         {
             Server.Stop();
             CurrentClient?.Dispose();
-        }
-
-        protected override void Reset()
-        {
-            base.Reset();
-            CurrentClient?.Close();
-            CurrentClient = null;
         }
 
         ~TCPServer()

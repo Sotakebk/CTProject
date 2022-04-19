@@ -2,6 +2,7 @@
 using DAQProxy.Services;
 using System;
 using System.Net;
+using CTProject.Infrastructure;
 using System.Threading;
 
 namespace PipeWrapperTest
@@ -11,53 +12,73 @@ namespace PipeWrapperTest
         private static void Main()
         {
             Console.WriteLine($"Running!");
+            var dependencyProvider = new DependencyProvider();
+            var loggingService = new LoggingService();
+            var actionPump = new ActionPump();
+            dependencyProvider.RegisterDependency(loggingService);
+            dependencyProvider.RegisterDependency(actionPump);
+
+            loggingService.LoadDependencies(dependencyProvider);
+
             var ip = CTProject.DataAcquisition.DefaultAddress.Address;
             var port = CTProject.DataAcquisition.DefaultAddress.Port;
             var server = new TCPServer(IPAddress.Loopback, port);
             var client = new TCPClient(IPAddress.Loopback, port);
 
-            server.LoadDependencies(DependencyProvider.Instance);
-            client.LoadDependencies(DependencyProvider.Instance);
+            server.LoadDependencies(dependencyProvider);
+            client.LoadDependencies(dependencyProvider);
 
             server.OnConnected = () =>
             {
-                server.PushMessage(new StringMessage() { MessageContent = $"Hello from the server side!" }.Serialize());
-                client.PushMessage(new StringMessage() { MessageContent = $"Hello from the client side!" }.Serialize());
+                actionPump.Do(() =>
+                {
+                    Thread.Sleep(100);
+                    server.PushMessage(new StringMessage() { MessageContent = $"Hello from the server side!" });
+                    client.PushMessage(new StringMessage() { MessageContent = $"Hello from the client side!" });
+                });
             };
 
             var _lock = new object();
-            var i = 3;
-            var running = true;
-            server.OnMessageReceived = (msg) => CloseBoth(msg, true);
-            client.OnMessageReceived = (msg) => CloseBoth(msg, false);
-            void CloseBoth(BinaryMessage msg, bool isServer)
+            var i = 1;
+            void CloseBoth(BinaryMessage msg, string name)
             {
                 var stringMessage = MessageFactory.GetMessageFromBinary<StringMessage>(msg);
-                var side = isServer ? "Server" : "Client";
-                Console.WriteLine($"{side} got: {stringMessage.MessageContent}");
+                Console.WriteLine($"{name} got: {stringMessage.MessageContent}");
 
                 lock (_lock)
                 {
                     i--;
                     if (i <= 0)
                     {
-                        client.Stop();
-                        server.Stop();
-                        running = false;
+                        actionPump.Do(() =>
+                        {
+                            client.Stop();
+                            server.Stop();
+                            actionPump.Quit();
+                        });
                     }
                 }
             }
 
-            Console.WriteLine($"Starting server and client!");
-            server.Start();
-            client.Start();
+            server.OnMessageReceived = (msg) => CloseBoth(msg, server.TCPSideName);
+            client.OnMessageReceived = (msg) => CloseBoth(msg, client.TCPSideName);
 
-            while (running)
-                Thread.Sleep(5);
+            actionPump.Do(() =>
+            {
+                loggingService.Log(LogLevel.Info, $"Starting server and client!");
+                server.Start();
+                client.Start();
+            });
+
+            actionPump.Join();
+
+            Thread.Sleep(1000);
+            actionPump.Quit();
+            actionPump.Join();
 
             Console.WriteLine($"Test finished!");
-            Console.WriteLine($"Press any key...");
-            Console.Read();
+            Console.WriteLine($"Press enter to quit...");
+            Console.ReadLine();
         }
     }
 }
