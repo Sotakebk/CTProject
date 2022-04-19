@@ -32,6 +32,7 @@ namespace CTProject.DataAcquisition.Communication
                 LoggingService?.Log(LogLevel.Info, $"Trying to connect to {address}:{port}");
                 Client.Connect(address, port);
                 base.Connect();
+                LoggingService?.Log(LogLevel.Info, $"Client connected successfully!");
             }
             catch (SocketException ex)
             {

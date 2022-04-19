@@ -1,1 +1,4 @@
-Please put NationalInstruments.DAQmx.dll in this folder.
+Please put
++NationalInstruments.Common.dll
++NationalInstruments.DAQmx.dll
+libraries in this folder.

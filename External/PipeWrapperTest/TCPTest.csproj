@@ -83,6 +83,7 @@
     <Compile Include="..\DAQProxy\Services\LoggingService.cs">
       <Link>DAQProxy.Services\LoggingService.cs</Link>
     </Compile>
+    <Compile Include="DAQProxy.Services\ActionPump.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

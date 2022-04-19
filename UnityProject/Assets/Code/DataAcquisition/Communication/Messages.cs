@@ -221,10 +221,46 @@ namespace CTProject.DataAcquisition.Communication
         {
             base.DeserializeFrom(binary);
             MessageContentIndex = BitConverter.ToInt32(binary.Data, 0);
-            var floatCount = (binary.Data.Length - sizeof(int)) / 4;
+            var floatCount = (binary.Data.Length - sizeof(int)) / sizeof(float);
             var buffer = new float[floatCount];
             Buffer.BlockCopy(binary.Data, sizeof(int), buffer, 0, floatCount);
             MessageContentData = buffer;
+            return this;
+        }
+    }
+
+    public sealed class IntArrayMessage : Message
+    {
+        public int[] MessageContent { get; set; }
+
+        public IntArrayMessage()
+        {
+            MessageContent = new int[0];
+        }
+
+        public IntArrayMessage(int messageType, int[] messageContent)
+        {
+            MessageType = messageType;
+            MessageContent = messageContent;
+        }
+
+        public override BinaryMessage Serialize()
+        {
+            var bm = new BinaryMessage();
+            var buffer = new byte[sizeof(int) * MessageContent.Length];
+            bm.Type = MessageType;
+            Buffer.BlockCopy(MessageContent, 0, buffer, 0, sizeof(int) * MessageContent.Length);
+            bm.Data = buffer;
+            return bm;
+        }
+
+        public override Message DeserializeFrom(BinaryMessage binary)
+        {
+            base.DeserializeFrom(binary);
+            var intCount = binary.Data.Length / sizeof(int);
+            var buffer = new int[intCount];
+            Buffer.BlockCopy(binary.Data, sizeof(int), buffer, 0, intCount);
+            MessageContent = buffer;
             return this;
         }
     }

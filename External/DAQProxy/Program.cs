@@ -1,4 +1,4 @@
-﻿using NationalInstruments.DAQmx;
+﻿using DAQProxy.Services;
 using System;
 
 namespace DAQProxy
@@ -7,14 +7,32 @@ namespace DAQProxy
     {
         public static void Main()
         {
-            var s = DaqSystem.Local;
-            var deviceList = string.Join(", ", s.Devices);
-            Console.WriteLine($"Available devices: {deviceList} ({s.Devices.Length})");
+            var dependencyProvider = new DependencyProvider();
 
-            var client = new ClientHandler();
-            client.LoadDependencies(Services.DependencyProvider.Instance);
+            var loggingService = new LoggingService();
+            var actionPump = new ActionPump();
+            var deviceHandler = new DeviceHandler();
+            var messageHandler = new CommunicationHandler();
+            dependencyProvider.RegisterDependency(actionPump);
+            dependencyProvider.RegisterDependency(loggingService);
+            dependencyProvider.RegisterDependency(deviceHandler);
+            dependencyProvider.RegisterDependency(messageHandler);
 
-            client.Start();
+            deviceHandler.LoadDependencies(dependencyProvider);
+            messageHandler.LoadDependencies(dependencyProvider);
+            loggingService.LoadDependencies(dependencyProvider);
+
+            deviceHandler.Prepare(); // prepare device stuff
+
+            messageHandler.Start(); // start TCP client and handling
+
+            actionPump.Join(); // do any work
+
+            // if actionPump stopped
+            messageHandler.Stop();
+
+            Console.WriteLine("Press any key to quit...");
+            Console.Read();
         }
     }
 }

@@ -50,6 +50,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NationalInstruments.Common">
+      <HintPath>..\..\Libraries\NationalInstruments.Common.dll</HintPath>
+    </Reference>
     <Reference Include="NationalInstruments.DAQmx">
       <HintPath>..\..\Libraries\NationalInstruments.DAQmx.dll</HintPath>
     </Reference>
@@ -63,39 +66,44 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\UnityProject\Assets\Code\DataAcquisition\Communication\Messages.cs">
-      <Link>CTProject.DataAcquisition.Communication\Communication\Messages.cs</Link>
+      <Link>CTProject\DataAcquisition\Communication\Messages.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\dataacquisition\communication\TCPBase.cs">
-      <Link>CTProject.DataAcquisition.Communication\Communication\TCPBase.cs</Link>
+      <Link>CTProject\DataAcquisition\Communication\TCPBase.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\dataacquisition\communication\TCPClient.cs">
-      <Link>CTProject.DataAcquisition.Communication\Communication\TCPClient.cs</Link>
+      <Link>CTProject\DataAcquisition\Communication\TCPClient.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\dataacquisition\communication\TCPServer.cs">
-      <Link>CTProject.DataAcquisition.Communication\Communication\TCPServer.cs</Link>
+      <Link>CTProject\DataAcquisition\Communication\TCPServer.cs</Link>
     </Compile>
     <Compile Include="..\..\UnityProject\Assets\Code\DataAcquisition\DefaultAddress.cs">
       <Link>CTProject\DataAcquisition\DefaultAddress.cs</Link>
     </Compile>
+    <Compile Include="..\..\UnityProject\Assets\Code\DataAcquisition\MessageTypeDefinition.cs">
+      <Link>CTProject\DataAcquisition\MessageTypeDefinition.cs</Link>
+    </Compile>
     <Compile Include="..\..\unityproject\assets\code\infrastructure\IChannelInfo.cs">
-      <Link>CTProject.Infrastructure\IChannelInfo.cs</Link>
+      <Link>CTProject\Infrastructure\IChannelInfo.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\infrastructure\IDataConsumer.cs">
-      <Link>CTProject.Infrastructure\IDataConsumer.cs</Link>
+      <Link>CTProject\Infrastructure\IDataConsumer.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\infrastructure\IDataProvider.cs">
-      <Link>CTProject.Infrastructure\IDataProvider.cs</Link>
+      <Link>CTProject\Infrastructure\IDataProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\infrastructure\IDependencyConsumer.cs">
-      <Link>CTProject.Infrastructure\IDependencyConsumer.cs</Link>
+      <Link>CTProject\Infrastructure\IDependencyConsumer.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\infrastructure\IDependencyProvider.cs">
-      <Link>CTProject.Infrastructure\IDependencyProvider.cs</Link>
+      <Link>CTProject\Infrastructure\IDependencyProvider.cs</Link>
     </Compile>
     <Compile Include="..\..\unityproject\assets\code\infrastructure\ILoggingService.cs">
-      <Link>CTProject.Infrastructure\ILoggingService.cs</Link>
+      <Link>CTProject\Infrastructure\ILoggingService.cs</Link>
     </Compile>
-    <Compile Include="ClientHandler.cs" />
+    <Compile Include="DeviceHandler.cs" />
+    <Compile Include="CommunicationHandler.cs" />
+    <Compile Include="Services\ActionPump.cs" />
     <Compile Include="Services\DependencyProvider.cs" />
     <Compile Include="Services\LoggingService.cs" />
     <Compile Include="Program.cs" />

@@ -95,6 +95,7 @@ namespace CTProject.DataAcquisition.Communication
         protected virtual void Connect()
         {
             lastMessageDate = DateTime.Now;
+            Reset();
             OnConnected?.Invoke();
         }
 
@@ -142,7 +143,13 @@ namespace CTProject.DataAcquisition.Communication
 
         public void PushMessage(BinaryMessage message)
         {
-            toSendQueue.Enqueue(message);
+            if (IsConnected)
+                toSendQueue.Enqueue(message);
+        }
+
+        public void PushMessage(Message message)
+        {
+            PushMessage(message.Serialize());
         }
 
         protected void SendMessage(BinaryMessage message)
