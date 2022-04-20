@@ -1,8 +1,8 @@
 ﻿using CTProject.DataAcquisition.Communication;
+using CTProject.Infrastructure;
 using DAQProxy.Services;
 using System;
 using System.Net;
-using CTProject.Infrastructure;
 using System.Threading;
 
 namespace PipeWrapperTest

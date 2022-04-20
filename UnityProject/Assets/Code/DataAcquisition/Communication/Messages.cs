@@ -112,7 +112,7 @@ namespace CTProject.DataAcquisition.Communication
         {
             var bm = new BinaryMessage();
             bm.Type = MessageType;
-            bm.Data = Encoding.UTF8.GetBytes(MessageContent);
+            bm.Data = Encoding.UTF8.GetBytes(MessageContent ?? string.Empty);
             return bm;
         }
 

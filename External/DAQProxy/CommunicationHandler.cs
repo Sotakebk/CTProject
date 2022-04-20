@@ -1,7 +1,6 @@
 ﻿using CTProject.DataAcquisition;
 using CTProject.DataAcquisition.Communication;
 using CTProject.Infrastructure;
-using DAQProxy.Services;
 
 namespace DAQProxy
 {
@@ -62,28 +61,28 @@ namespace DAQProxy
                     OnMessageStop();
                     return;
 
+                case MessageTypeDefinition.SamplingRateInfo:
+                    OnMessageRequestSamplingRateInfo();
+                    return;
+
                 case MessageTypeDefinition.BufferSizeInfo:
-                    OnMessageRequestAvailableBufferSizes();
+                    OnMessageRequestBufferSizeInfo();
+                    return;
+
+                case MessageTypeDefinition.ChannelInfo:
+                    OnMessageRequestChannelInfo();
+                    return;
+
+                case MessageTypeDefinition.SamplingRateSet:
+                    OnMessageSetSamplingRate(message);
                     return;
 
                 case MessageTypeDefinition.BufferSizeSet:
                     OnMessageSetBufferSize(message);
                     return;
 
-                case MessageTypeDefinition.ChannelInfo:
-                    OnMessageRequestAvailableChannels();
-                    return;
-
                 case MessageTypeDefinition.ChannelSet:
                     OnMessageSetChannel(message);
-                    return;
-
-                case MessageTypeDefinition.SamplingRateInfo:
-                    OnMessageRequestAvailableSamplingRates();
-                    return;
-
-                case MessageTypeDefinition.SamplingRateSet:
-                    OnMessageSetSamplingRate(message);
                     return;
 
                 default:
@@ -138,19 +137,19 @@ namespace DAQProxy
             client.PushMessage(msg);
         }
 
-        public void SendMessageStarted()
+        public void SendStarted()
         {
             var msg = new EmptyMessage(MessageTypeDefinition.Start);
             client.PushMessage(msg);
         }
 
-        public void SendMessageDataBuffer(float[] buffer, int index)
+        public void SendDataBuffer(float[] buffer, int index)
         {
             var msg = new DataBufferMessage(MessageTypeDefinition.DataPacket, index, buffer);
             client.PushMessage(msg);
         }
 
-        public void SendMessageStopped()
+        public void SendStopped()
         {
             var msg = new EmptyMessage(MessageTypeDefinition.Stop);
             client.PushMessage(msg);
@@ -179,9 +178,22 @@ namespace DAQProxy
             deviceHandler.Stop();
         }
 
-        private void OnMessageRequestAvailableBufferSizes()
+        private void OnMessageRequestBufferSizeInfo()
         {
             SendAvailableBufferSizes();
+            SendSelectedBufferSize();
+        }
+
+        private void OnMessageRequestSamplingRateInfo()
+        {
+            SendAvailableSamplingRates();
+            SendSelectedSamplingRate();
+        }
+
+        private void OnMessageRequestChannelInfo()
+        {
+            SendAvailableChannels();
+            SendSelectedChannel();
         }
 
         private void OnMessageSetBufferSize(BinaryMessage msg)
@@ -191,21 +203,11 @@ namespace DAQProxy
             SendSelectedBufferSize();
         }
 
-        private void OnMessageRequestAvailableSamplingRates()
-        {
-            SendAvailableSamplingRates();
-        }
-
         private void OnMessageSetSamplingRate(BinaryMessage msg)
         {
             var value = MessageFactory.GetMessageFromBinary<IntMessage>(msg).MessageContent;
             deviceHandler.SelectedSamplingRate = value;
             SendSelectedSamplingRate();
-        }
-
-        private void OnMessageRequestAvailableChannels()
-        {
-            SendAvailableChannels();
         }
 
         private void OnMessageSetChannel(BinaryMessage msg)

@@ -91,7 +91,7 @@ namespace DAQProxy
             {
                 try
                 {
-                    communicationHandler.SendMessageStarted();
+                    communicationHandler.SendStarted();
 
                     innerTask = new Task();
 
@@ -124,7 +124,7 @@ namespace DAQProxy
                 catch (DaqException ex)
                 {
                     loggingService?.Log(LogLevel.Error, $"Exception thrown when starting data read: {ex}");
-                    communicationHandler.SendMessageStopped();
+                    communicationHandler.SendStopped();
                 }
             }
         }
@@ -161,7 +161,7 @@ namespace DAQProxy
             catch (DaqException ex)
             {
                 loggingService?.Log(LogLevel.Error, $"Exception thrown when reading data: {ex}");
-                communicationHandler.SendMessageStopped();
+                communicationHandler.SendStopped();
                 Stop();
             }
         }
@@ -183,7 +183,7 @@ namespace DAQProxy
 
             var floatValues = Data.Cast<float>().ToArray();
 
-            communicationHandler.SendMessageDataBuffer(floatValues, index);
+            communicationHandler.SendDataBuffer(floatValues, index);
         }
     }
 }
