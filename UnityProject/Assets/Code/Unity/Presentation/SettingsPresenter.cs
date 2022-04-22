@@ -76,15 +76,15 @@ namespace CTProject.Unity.Presentation
             dataSourceSettings.visible = true;
             var channels = provider.GetAvailableChannels();
             selectedChannelDropdown.choices = channels?.Select(c => c.UniqueName)?.ToList();
-            selectedChannelDropdown.value = channels?.FirstOrDefault(c => c.UniqueName == provider.SelectedChannel?.UniqueName)?.UniqueName ?? string.Empty;
+            selectedChannelDropdown.value = provider?.SelectedChannel?.UniqueName ?? string.Empty;
 
             var bufferSizes = provider.GetAvailableBufferSizes();
             selectedBufferSizeDropdown.choices = bufferSizes?.Select(b => b.ToString())?.ToList();
-            selectedBufferSizeDropdown.value = bufferSizes?.FirstOrDefault(b => b.ToString() == provider.SelectedBufferSize.ToString()).ToString() ?? string.Empty;
+            selectedBufferSizeDropdown.value = provider?.SelectedBufferSize.ToString() ?? string.Empty;
 
             var samplingRates = provider.GetAvailableSamplingRates();
             selectedSamplingRateDropdown.choices = samplingRates?.Select(s => s.ToString())?.ToList();
-            selectedSamplingRateDropdown.value = samplingRates?.FirstOrDefault(s => s.ToString() == provider.SelectedSamplingRate.ToString()).ToString() ?? string.Empty;
+            selectedSamplingRateDropdown.value = provider?.SelectedSamplingRate.ToString() ?? string.Empty;
         }
 
         #endregion Presenter

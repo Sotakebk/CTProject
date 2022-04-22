@@ -74,15 +74,15 @@ namespace CTProject.Unity
             switch (level)
             {
                 case LogLevel.Info:
-                    Debug.Log($"{Tag} {message}");
+                    Debug.Log($"{Tag} {message}\n{stackTrace}");
                     break;
 
                 case LogLevel.Warning:
-                    Debug.LogWarning($"{Tag} {message}");
+                    Debug.LogWarning($"{Tag} {message}\n{stackTrace}");
                     break;
 
                 case LogLevel.Error:
-                    Debug.LogError($"{Tag} {message}");
+                    Debug.LogError($"{Tag} {message}\n{stackTrace}");
                     break;
             }
         }

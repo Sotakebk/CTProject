@@ -171,7 +171,9 @@ namespace DAQProxy
             for (int x = 0; x < Data.Length; x++)
             {
                 var buffer = Data[x].GetScaledData();
-                actionPump.Do(() => ProcessDataAction(buffer, readingID, index));
+                var i = index;
+                var id = readingID;
+                actionPump.Do(() => ProcessDataAction(buffer, id, i));
                 index += buffer.Length;
             }
         }
@@ -181,7 +183,7 @@ namespace DAQProxy
             if (readingID != this.readingID)
                 return;
 
-            var floatValues = Data.Cast<float>().ToArray();
+            var floatValues = Array.ConvertAll(Data, d => (float)d).ToArray();
 
             communicationHandler.SendDataBuffer(floatValues, index);
         }

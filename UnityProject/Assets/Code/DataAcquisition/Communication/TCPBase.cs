@@ -1,6 +1,7 @@
 ﻿using CTProject.Infrastructure;
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -20,7 +21,8 @@ namespace CTProject.DataAcquisition.Communication
 
         protected readonly object _lock;
 
-        protected DateTime lastMessageDate;
+        protected DateTime lastSentMessage;
+        protected DateTime lastReceivedMessage;
 
         protected TCPBase()
         {
@@ -61,10 +63,17 @@ namespace CTProject.DataAcquisition.Communication
             }
         }
 
+        public virtual void Abort()
+        {
+            LoggingService = null;
+            WorkerThread?.Abort();
+        }
+
         protected void DoWork()
         {
             LoggingService?.Log(LogLevel.Info, $"{TCPSideName} worker starting!");
-            lastMessageDate = DateTime.Now;
+            lastSentMessage = DateTime.Now;
+            lastReceivedMessage = DateTime.Now;
             while (IsOpen)
             {
                 try
@@ -75,18 +84,24 @@ namespace CTProject.DataAcquisition.Communication
                     {
                         Work();
 
-                        if (lastMessageDate.AddSeconds(15) < DateTime.Now)
+                        if (lastReceivedMessage.AddSeconds(15) < DateTime.Now)
                             throw new TimeoutException();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is SocketException || ex is TimeoutException || ex is IOException)
                 {
                     LoggingService?.Log(LogLevel.Warning, $"{TCPSideName} resetting, cause: {ex.Message}");
                     Reset(true);
                     OnDisconnected?.Invoke();
                 }
+                catch (Exception ex)
+                {
+                    LoggingService?.Log(LogLevel.Error, $"Unexpected exception thrown on TCP thread: {ex.GetType().Name} {ex.Message}");
+                    LoggingService.Log(ex);
+                    OnDisconnected?.Invoke();
+                }
 
-                Thread.Sleep(5);
+                Thread.Sleep(20);
             }
             WorkerStop();
             OnDisconnected?.Invoke();
@@ -97,7 +112,8 @@ namespace CTProject.DataAcquisition.Communication
 
         protected virtual void Connect()
         {
-            lastMessageDate = DateTime.Now;
+            lastSentMessage = DateTime.Now;
+            lastReceivedMessage = DateTime.Now;
             Reset(false);
             OnConnected?.Invoke();
         }
@@ -114,12 +130,14 @@ namespace CTProject.DataAcquisition.Communication
                     if (toSendQueue.TryDequeue(out var message))
                     {
                         SendMessage(message);
+                        lastSentMessage = DateTime.Now;
                         didSomeWork = true;
                     }
                 }
                 if (NetworkStream != null && NetworkStream.DataAvailable)
                 {
                     var message = ReceiveMessage();
+                    lastReceivedMessage = DateTime.Now;
                     if (message.Type >= 0)
                     {
                         OnMessageReceived?.Invoke(message);
@@ -127,15 +145,10 @@ namespace CTProject.DataAcquisition.Communication
                     }
                 }
 
-                if (lastMessageDate.AddSeconds(5) < DateTime.Now)
+                if (lastSentMessage.AddSeconds(5) < DateTime.Now)
                 {
                     PushMessage(BinaryMessage.Empty);
                 }
-
-                if (didSomeWork)
-                    lastMessageDate = DateTime.Now;
-                else
-                    return;
             }
         }
 
@@ -167,7 +180,8 @@ namespace CTProject.DataAcquisition.Communication
         {
             int length = BitConverter.ToInt32(NetworkReadBytes(sizeof(int)), 0);
             var data = NetworkReadBytes(length);
-            return new BinaryMessage(data);
+            var msg = new BinaryMessage(data);
+            return msg;
         }
 
         protected void NetworkWriteBytes(byte[] array, int mspb = -1)

@@ -34,6 +34,16 @@ namespace CTProject.Unity
 
         #endregion IDataProviderContainer
 
+        #region Unity calls
+
+        private void OnDestroy()
+        {
+            // called when the play mode is stopped
+            dataProvider?.AbortTCPThread();
+        }
+
+        #endregion Unity calls
+
         #region private methods
 
         private void PrepareDataProvider()

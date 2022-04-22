@@ -31,6 +31,7 @@ namespace CTProject.DataAcquisition
         private IDataConsumer consumer;
 
         private bool isRemoteRunning;
+        private bool isInitialized;
 
         #endregion fields
 
@@ -41,10 +42,13 @@ namespace CTProject.DataAcquisition
             get => selectedChannelInfo;
             set
             {
-                selectedChannelInfo = value;
-                Stop();
-                SendSelectedChannel();
-                consumer?.OnSettingsChange(this);
+                if (selectedChannelInfo != value)
+                {
+                    selectedChannelInfo = value;
+                    Stop();
+                    SendSelectedChannel();
+                    consumer?.OnSettingsChange(this);
+                }
             }
         }
 
@@ -53,22 +57,28 @@ namespace CTProject.DataAcquisition
             get => selectedSamplingRate;
             set
             {
-                selectedSamplingRate = value;
-                Stop();
-                SendSelectedSamplingRate();
-                consumer?.OnSettingsChange(this);
+                if (selectedSamplingRate != value)
+                {
+                    selectedSamplingRate = value;
+                    Stop();
+                    SendSelectedSamplingRate();
+                    consumer?.OnSettingsChange(this);
+                }
             }
         }
 
         public uint SelectedBufferSize
         {
-            get => selectedSamplingRate;
+            get => selectedBufferSize;
             set
             {
-                selectedSamplingRate = value;
-                Stop();
-                SendSelectedBufferSize();
-                consumer?.OnSettingsChange(this);
+                if (selectedBufferSize != value)
+                {
+                    selectedBufferSize = value;
+                    Stop();
+                    SendSelectedBufferSize();
+                    consumer?.OnSettingsChange(this);
+                }
             }
         }
 
@@ -84,7 +94,6 @@ namespace CTProject.DataAcquisition
 
         public DeviceDataProvider()
         {
-            State = DataProviderState.Uninitialized;
             server = new TCPServer(DefaultAddress.Address, DefaultAddress.Port);
             ResetCache();
 
@@ -125,7 +134,20 @@ namespace CTProject.DataAcquisition
             Stop();
         }
 
-        public DataProviderState State { get; private set; }
+        public DataProviderState State
+        {
+            get
+            {
+                if (!isInitialized)
+                    return DataProviderState.Uninitialized;
+                if (server.IsOpen && isRemoteRunning)
+                    return DataProviderState.Working;
+                if (server.IsOpen && !isRemoteRunning)
+                    return DataProviderState.Ready;
+
+                return DataProviderState.NotReady;
+            }
+        }
 
         public float GetMaxValue() => 10f;
 
@@ -133,25 +155,22 @@ namespace CTProject.DataAcquisition
 
         public void Initialize()
         {
-            if (State != DataProviderState.Uninitialized)
+            if (isInitialized)
                 return;
 
             server.Start();
-
-            State = DataProviderState.NotReady;
+            isInitialized = true;
         }
 
         #endregion IDataProvider
 
         private void OnClientConnected()
         {
-            State = DataProviderState.Ready;
             ResetCache();
         }
 
         private void OnClientDisconnected()
         {
-            State = DataProviderState.NotReady;
             if (isRemoteRunning)
             {
                 isRemoteRunning = false;
@@ -189,11 +208,11 @@ namespace CTProject.DataAcquisition
                     return;
 
                 case MessageTypeDefinition.ChannelInfo:
-                    OnMessageReceiveSamplingRateInfo(message);
+                    OnMessageReceiveChannelInfo(message);
                     return;
 
                 case MessageTypeDefinition.SamplingRateInfo:
-                    OnMessageReceiveChannelInfo(message);
+                    OnMessageReceiveSamplingRateInfo(message);
                     return;
 
                 case MessageTypeDefinition.BufferSizeSet:
@@ -254,13 +273,13 @@ namespace CTProject.DataAcquisition
             server.PushMessage(msg);
         }
 
-        public void SendStart()
+        private void SendStart()
         {
             var msg = new EmptyMessage(MessageTypeDefinition.Start);
             server.PushMessage(msg);
         }
 
-        public void SendStop()
+        private void SendStop()
         {
             var msg = new EmptyMessage(MessageTypeDefinition.Stop);
             server.PushMessage(msg);
@@ -281,13 +300,13 @@ namespace CTProject.DataAcquisition
         private void OnMessageReceiveBufferSizeInfo(BinaryMessage message)
         {
             var msg = MessageFactory.GetMessageFromBinary<IntArrayMessage>(message);
-            cachedBufferSizes = msg.MessageContent.Cast<uint>().ToArray();
+            cachedBufferSizes = msg.MessageContent.Select(i => (uint)i).ToArray();
         }
 
         private void OnMessageReceiveSamplingRateInfo(BinaryMessage message)
         {
             var msg = MessageFactory.GetMessageFromBinary<IntArrayMessage>(message);
-            cachedSamplingRates = msg.MessageContent.Cast<uint>().ToArray();
+            cachedSamplingRates = msg.MessageContent.Select(i => (uint)i).ToArray();
         }
 
         private void OnMessageReceiveChannelInfo(BinaryMessage message)
@@ -307,20 +326,26 @@ namespace CTProject.DataAcquisition
         {
             var msg = MessageFactory.GetMessageFromBinary<IntMessage>(message);
             selectedSamplingRate = (uint)msg.MessageContent;
-            SendSelectedSamplingRate();
         }
 
         private void OnMessageSetChannel(BinaryMessage message)
         {
             var msg = MessageFactory.GetMessageFromBinary<StringMessage>(message);
             selectedChannelInfo = cachedChannelInfos.FirstOrDefault(c => c.UniqueName == msg.MessageContent);
-            consumer?.OnSettingsChange(this);
         }
 
         private void OnMessageDataPacket(BinaryMessage message)
         {
+            if (State != DataProviderState.Working)
+                return;
+
             var msg = MessageFactory.GetMessageFromBinary<DataBufferMessage>(message);
             consumer?.ReceiveData((ulong)msg.MessageContentIndex, msg.MessageContentData);
+        }
+
+        public void AbortTCPThread()
+        {
+            server?.Abort();
         }
     }
 }

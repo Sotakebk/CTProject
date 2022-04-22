@@ -43,7 +43,14 @@ namespace CTProject.DataAcquisition.Communication
     {
         public static T GetMessageFromBinary<T>(BinaryMessage binary) where T : Message, new()
         {
-            return new T().DeserializeFrom<T>(binary);
+            try
+            {
+                return new T().DeserializeFrom<T>(binary);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed deserializing message of type {typeof(T)}, reason: {ex.Message}", ex);
+            }
         }
     }
 
@@ -145,7 +152,7 @@ namespace CTProject.DataAcquisition.Communication
         {
             var bm = new BinaryMessage();
             bm.Type = MessageType;
-            var joinedString = String.Join(separator, MessageContent);
+            var joinedString = string.Join(separator, MessageContent);
             bm.Data = Encoding.UTF8.GetBytes(joinedString);
             return bm;
         }
@@ -259,7 +266,7 @@ namespace CTProject.DataAcquisition.Communication
             base.DeserializeFrom(binary);
             var intCount = binary.Data.Length / sizeof(int);
             var buffer = new int[intCount];
-            Buffer.BlockCopy(binary.Data, sizeof(int), buffer, 0, intCount);
+            Buffer.BlockCopy(binary.Data, 0, buffer, 0, binary.Data.Length);
             MessageContent = buffer;
             return this;
         }
