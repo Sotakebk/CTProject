@@ -8,7 +8,7 @@ namespace CTProject.DataAcquisition.Communication
 {
     public class TCPClient : TCPBase, IDisposable
     {
-        protected override bool IsConnected => Client?.Connected ?? false;
+        public override bool IsConnected => Client?.Connected ?? false;
         public override string TCPSideName => "Client";
 
         protected override NetworkStream NetworkStream => Client?.GetStream();

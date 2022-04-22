@@ -7,7 +7,7 @@ namespace CTProject.DataAcquisition.Communication
 {
     public class TCPServer : TCPBase
     {
-        protected override bool IsConnected => CurrentClient?.Connected ?? false;
+        public override bool IsConnected => CurrentClient?.Connected ?? false;
         public override string TCPSideName => "Server";
 
         protected override NetworkStream NetworkStream => CurrentClient?.GetStream();

@@ -140,12 +140,12 @@ namespace CTProject.DataAcquisition
             {
                 if (!isInitialized)
                     return DataProviderState.Uninitialized;
-                if (server.IsOpen && isRemoteRunning)
+                else if(!server.IsConnected)
+                    return DataProviderState.NotReady;
+                else if(isRemoteRunning)
                     return DataProviderState.Working;
-                if (server.IsOpen && !isRemoteRunning)
+                else
                     return DataProviderState.Ready;
-
-                return DataProviderState.NotReady;
             }
         }
 

@@ -14,7 +14,7 @@ namespace CTProject.DataAcquisition.Communication
         public abstract string TCPSideName { get; }
 
         public bool IsOpen { get; set; }
-        protected abstract bool IsConnected { get; }
+        public abstract bool IsConnected { get; }
 
         protected abstract NetworkStream NetworkStream { get; }
         protected Thread WorkerThread { get; set; }
@@ -97,7 +97,7 @@ namespace CTProject.DataAcquisition.Communication
                 catch (Exception ex)
                 {
                     LoggingService?.Log(LogLevel.Error, $"Unexpected exception thrown on TCP thread: {ex.GetType().Name} {ex.Message}");
-                    LoggingService.Log(ex);
+                    LoggingService?.Log(ex);
                     OnDisconnected?.Invoke();
                 }
 

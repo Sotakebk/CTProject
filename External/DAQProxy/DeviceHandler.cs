@@ -13,16 +13,41 @@ namespace DAQProxy
         private ILoggingService loggingService;
         private IActionPump actionPump;
         private CommunicationHandler communicationHandler;
-
+        private int selectedBufferSize = 0;
+        private int selectedSamplingRate = 0;
+        private string selectedChannel = string.Empty;
         public bool IsWorking { get; private set; }
-        public int SelectedBufferSize { get; set; }
-        public int SelectedSamplingRate { get; set; }
-        public string SelectedChannel { get; set; }
+        public int SelectedBufferSize {
+            get => selectedBufferSize;
+            set
+            {
+                Stop();
+                selectedBufferSize = value;
+            }
+        }
+        public int SelectedSamplingRate
+        {
+            get => selectedSamplingRate;
+            set
+            {
+                Stop();
+                selectedSamplingRate = value;
+            }
+        }
+        public string SelectedChannel
+        {
+            get => selectedChannel;
+            set
+            {
+                Stop();
+                selectedChannel = value;
+            }
+        }
 
         private string[] channels;
 
         private volatile Task innerTask;
-        private volatile AnalogMultiChannelReader reader;
+        private volatile AnalogSingleChannelReader reader;
         private volatile AsyncCallback callback;
 
         private volatile int readingID;
@@ -97,8 +122,8 @@ namespace DAQProxy
 
                     innerTask.AIChannels.CreateVoltageChannel(
                         physicalChannelName: SelectedChannel,
-                        nameToAssignChannel: string.Empty,
-                        terminalConfiguration: (AITerminalConfiguration)(-1),
+                        nameToAssignChannel: $"Reading{readingID}",
+                        terminalConfiguration: AITerminalConfiguration.Rse,
                         minimumValue: 0,
                         maximumValue: 10,
                         units: AIVoltageUnits.Volts);
@@ -112,12 +137,12 @@ namespace DAQProxy
 
                     innerTask.Control(TaskAction.Verify);
 
-                    reader = new AnalogMultiChannelReader(innerTask.Stream);
+                    reader = new AnalogSingleChannelReader(innerTask.Stream);
                     callback = new AsyncCallback(AnalogInCallback);
 
-                    reader.SynchronizeCallbacks = true;
-                    reader.BeginReadWaveform(
-                        samplesPerChannel: SelectedBufferSize,
+                    reader.SynchronizeCallbacks = false;
+                    reader.BeginReadMultiSample(
+                        numberOfSamples: SelectedBufferSize,
                         callback: callback,
                         state: innerTask);
                 }
@@ -136,8 +161,10 @@ namespace DAQProxy
 
             readingID++;
             index = 0;
+            innerTask?.Stop();
             innerTask?.Dispose();
             innerTask = null;
+            communicationHandler.SendStopped();
         }
 
         private void AnalogInCallback(IAsyncResult ar)
@@ -146,16 +173,14 @@ namespace DAQProxy
             {
                 if (innerTask != null && innerTask == ar.AsyncState)
                 {
-                    // Read the available data from the channels
-                    var data = reader.EndReadWaveform(ar);
+                    double[] data = reader.EndReadMultiSample(ar);
 
                     ProcessData(data);
 
-                    reader.BeginMemoryOptimizedReadWaveform(
-                        samplesPerChannel: SelectedBufferSize,
+                    reader.BeginReadMultiSample(
+                        numberOfSamples: SelectedBufferSize,
                         callback: callback,
-                        state: innerTask,
-                        data);
+                        state: innerTask);
                 }
             }
             catch (DaqException ex)
@@ -166,24 +191,20 @@ namespace DAQProxy
             }
         }
 
-        private void ProcessData(AnalogWaveform<double>[] Data)
+        private void ProcessData(double[] data)
         {
-            for (int x = 0; x < Data.Length; x++)
-            {
-                var buffer = Data[x].GetScaledData();
                 var i = index;
                 var id = readingID;
-                actionPump.Do(() => ProcessDataAction(buffer, id, i));
-                index += buffer.Length;
-            }
+                actionPump.Do(() => ProcessDataAction(data, id, i));
+                index += data.Length;
         }
 
-        private void ProcessDataAction(double[] Data, int readingID, int index)
+        private void ProcessDataAction(double[] data, int readingID, int index)
         {
             if (readingID != this.readingID)
                 return;
 
-            var floatValues = Array.ConvertAll(Data, d => (float)d).ToArray();
+            var floatValues = Array.ConvertAll(data, d => (float)d).ToArray();
 
             communicationHandler.SendDataBuffer(floatValues, index);
         }

@@ -216,7 +216,8 @@ namespace CTProject.DataAcquisition.Communication
         public override BinaryMessage Serialize()
         {
             var bm = new BinaryMessage();
-            var buffer = new byte[sizeof(int) + sizeof(float) * MessageContentData.Length];
+            var byteCount = sizeof(int) + sizeof(float) * MessageContentData.Length;
+            var buffer = new byte[byteCount];
             bm.Type = MessageType;
             Buffer.BlockCopy(BitConverter.GetBytes(MessageContentIndex), 0, buffer, 0, sizeof(int));
             Buffer.BlockCopy(MessageContentData, 0, buffer, sizeof(int), sizeof(float) * MessageContentData.Length);
@@ -230,7 +231,7 @@ namespace CTProject.DataAcquisition.Communication
             MessageContentIndex = BitConverter.ToInt32(binary.Data, 0);
             var floatCount = (binary.Data.Length - sizeof(int)) / sizeof(float);
             var buffer = new float[floatCount];
-            Buffer.BlockCopy(binary.Data, sizeof(int), buffer, 0, floatCount);
+            Buffer.BlockCopy(binary.Data, sizeof(int), buffer, 0, floatCount * sizeof(float));
             MessageContentData = buffer;
             return this;
         }
