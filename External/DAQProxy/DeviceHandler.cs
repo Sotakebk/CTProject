@@ -3,6 +3,7 @@ using DAQProxy.Services;
 using NationalInstruments;
 using NationalInstruments.DAQmx;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -16,8 +17,12 @@ namespace DAQProxy
         private int selectedBufferSize = 0;
         private int selectedSamplingRate = 0;
         private string selectedChannel = string.Empty;
+        private string[] availableChannels = Array.Empty<string>();
+        private int[] samplingRates = Array.Empty<int>();
         public bool IsWorking { get; private set; }
-        public int SelectedBufferSize {
+
+        public int SelectedBufferSize
+        {
             get => selectedBufferSize;
             set
             {
@@ -25,6 +30,7 @@ namespace DAQProxy
                 selectedBufferSize = value;
             }
         }
+
         public int SelectedSamplingRate
         {
             get => selectedSamplingRate;
@@ -34,6 +40,7 @@ namespace DAQProxy
                 selectedSamplingRate = value;
             }
         }
+
         public string SelectedChannel
         {
             get => selectedChannel;
@@ -44,7 +51,8 @@ namespace DAQProxy
             }
         }
 
-        private string[] channels;
+        public int MinValue { get; set; }
+        public int MaxValue { get; set; }
 
         private volatile Task innerTask;
         private volatile AnalogSingleChannelReader reader;
@@ -64,42 +72,52 @@ namespace DAQProxy
             communicationHandler = dependencyProvider.GetDependency<CommunicationHandler>();
         }
 
-        public void Prepare()
+        public Device[] ListDevices()
         {
-            Stop();
-            readingID++;
-            index = 0;
-
+            List<Device> deviceList = new List<Device>();
             var s = DaqSystem.Local;
+            var deviceNames = s.Devices;
+            foreach (var name in deviceNames)
+            {
+                try
+                {
+                    deviceList.Add(s.LoadDevice(name));
+                }
+                catch (DaqException ex)
+                {
+                    loggingService?.Log(ex);
+                }
+            }
+            return deviceList.ToArray();
+        }
 
-            var report = new StringBuilder();
-            report.AppendLine($"Devices connected: {string.Join(", ", s.Devices)}");
+        public void ApplyDefaultSettings(Device device)
+        {
+            availableChannels = device.AIPhysicalChannels;
 
-            channels = DaqSystem.Local.GetPhysicalChannels(PhysicalChannelTypes.AI, PhysicalChannelAccess.External);
-            report.AppendLine($"Analog In channels available: {string.Join(", ", channels)}");
+            var maximumSampling = device.AIMaximumSingleChannelRate;
+            var minimumSampling = device.AIMinimumRate;
+            samplingRates = GetPowersOf2BetweenInclusive((int)Math.Ceiling(minimumSampling), (int)Math.Floor(maximumSampling));
 
-            SelectedBufferSize = GetPossibleBufferSizes().First();
-            SelectedSamplingRate = GetPossibleSamplingRates().First();
+            var bufferSizes = GetPossibleBufferSizes();
+            SelectedBufferSize = bufferSizes[bufferSizes.Length / 2];
             SelectedChannel = GetPossibleChannels().First();
-
-            report.AppendLine($"Buffer size: {SelectedBufferSize}, sampling rate: {SelectedSamplingRate}, channel: {SelectedChannel}");
-
-            loggingService.Log(LogLevel.Info, report.ToString());
+            SelectedSamplingRate = GetPossibleSamplingRates().First();
         }
 
         public string[] GetPossibleChannels()
         {
-            return (string[])channels.Clone();
+            return (string[])availableChannels.Clone();
         }
 
         public int[] GetPossibleBufferSizes()
         {
-            return new int[] { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
+            return new int[] { 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
         }
 
         public int[] GetPossibleSamplingRates()
         {
-            return new int[] { 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 48000 };
+            return (int[])samplingRates.Clone();
         }
 
         public void Start()
@@ -124,8 +142,8 @@ namespace DAQProxy
                         physicalChannelName: SelectedChannel,
                         nameToAssignChannel: $"Reading{readingID}",
                         terminalConfiguration: AITerminalConfiguration.Rse,
-                        minimumValue: 0,
-                        maximumValue: 10,
+                        minimumValue: MinValue,
+                        maximumValue: MaxValue,
                         units: AIVoltageUnits.Volts);
 
                     innerTask.Timing.ConfigureSampleClock(
@@ -193,10 +211,10 @@ namespace DAQProxy
 
         private void ProcessData(double[] data)
         {
-                var i = index;
-                var id = readingID;
-                actionPump.Do(() => ProcessDataAction(data, id, i));
-                index += data.Length;
+            var i = index;
+            var id = readingID;
+            actionPump.Do(() => ProcessDataAction(data, id, i));
+            index += data.Length;
         }
 
         private void ProcessDataAction(double[] data, int readingID, int index)
@@ -207,6 +225,21 @@ namespace DAQProxy
             var floatValues = Array.ConvertAll(data, d => (float)d).ToArray();
 
             communicationHandler.SendDataBuffer(floatValues, index);
+        }
+
+        private int[] GetPowersOf2BetweenInclusive(int A, int B)
+        {
+            if (A < 0) A = 0;
+            var itStart = (int)Math.Ceiling(Math.Log(A,2));
+            var itEnd = (int)Math.Floor(Math.Log(B,2));
+
+            var list = new List<int>();
+            list.Add(A);
+            for (int x = itStart; x <= itEnd; x++)
+                list.Add((int)Math.Pow(2, x));
+
+            list.Add(B);
+            return list.Distinct().OrderBy(i => i).ToArray();
         }
     }
 }

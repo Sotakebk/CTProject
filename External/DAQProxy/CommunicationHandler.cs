@@ -1,12 +1,14 @@
 ﻿using CTProject.DataAcquisition;
 using CTProject.DataAcquisition.Communication;
 using CTProject.Infrastructure;
+using System.Net;
 
 namespace DAQProxy
 {
     public class CommunicationHandler : IDependencyConsumer
     {
         private ILoggingService loggingService;
+        private IDependencyProvider dependencyProvider;
         private DeviceHandler deviceHandler;
 
         private TCPClient client;
@@ -22,6 +24,7 @@ namespace DAQProxy
 
         public void LoadDependencies(IDependencyProvider dependencyProvider)
         {
+            this.dependencyProvider = dependencyProvider;
             client.LoadDependencies(dependencyProvider);
             loggingService = dependencyProvider.GetDependency<ILoggingService>();
             deviceHandler = dependencyProvider.GetDependency<DeviceHandler>();
@@ -38,6 +41,22 @@ namespace DAQProxy
             InnerStop();
         }
 
+        public void ChangeAddress(IPAddress address, int port)
+        {
+            client?.Stop();
+            client?.Dispose();
+
+            client.OnDisconnected -= OnDisconnected;
+            client.OnConnected -= OnConnected;
+            client.OnMessageReceived -= OnMessageReceived;
+
+            client = new TCPClient(address, port);
+            client.LoadDependencies(dependencyProvider);
+            client.OnDisconnected = OnDisconnected;
+            client.OnConnected = OnConnected;
+            client.OnMessageReceived = OnMessageReceived;
+        }
+
         private void OnDisconnected()
         {
             InnerStop();
@@ -45,7 +64,6 @@ namespace DAQProxy
 
         private void OnConnected()
         {
-            deviceHandler.Prepare();
             SendEntireConfiguration();
         }
 
@@ -85,6 +103,10 @@ namespace DAQProxy
                     OnMessageSetChannel(message);
                     return;
 
+                case MessageTypeDefinition.MinMaxValueInfo:
+                    OnMessageSetChannel(message);
+                    return;
+
                 default:
                     loggingService?.Log(LogLevel.Warning, $"Unknown message: {message.Type}");
                     return;
@@ -93,6 +115,7 @@ namespace DAQProxy
 
         private void SendEntireConfiguration()
         {
+            SendMinMaxValueInfo();
             SendAvailableChannels();
             SendAvailableBufferSizes();
             SendAvailableSamplingRates();
@@ -152,6 +175,12 @@ namespace DAQProxy
         public void SendStopped()
         {
             var msg = new EmptyMessage(MessageTypeDefinition.Stop);
+            client.PushMessage(msg);
+        }
+
+        public void SendMinMaxValueInfo()
+        {
+            var msg = new IntArrayMessage(MessageTypeDefinition.MinMaxValueInfo, new int[] { deviceHandler.MinValue, deviceHandler.MaxValue });
             client.PushMessage(msg);
         }
 
@@ -215,6 +244,11 @@ namespace DAQProxy
             var value = MessageFactory.GetMessageFromBinary<StringMessage>(msg).MessageContent;
             deviceHandler.SelectedChannel = value;
             SendSelectedChannel();
+        }
+
+        private void OnMessageMinMaxValueInfo()
+        {
+            SendMinMaxValueInfo();
         }
     }
 }

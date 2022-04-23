@@ -46,5 +46,10 @@ namespace CTProject.DataAcquisition
         // in - IntMessage
         // out - IntMessage
         public const int SamplingRateSet = 9;
+
+        // Message for Min-Max values
+        // in - EmptyMessage
+        // out - IntArrayMessage
+        public const int MinMaxValueInfo = 10;
     }
 }

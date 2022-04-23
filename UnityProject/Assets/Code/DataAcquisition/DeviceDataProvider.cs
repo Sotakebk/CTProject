@@ -27,6 +27,8 @@ namespace CTProject.DataAcquisition
         private uint selectedBufferSize;
         private uint selectedSamplingRate;
         private IChannelInfo selectedChannelInfo;
+        private int minValue;
+        private int maxValue;
 
         private IDataConsumer consumer;
 
@@ -82,6 +84,32 @@ namespace CTProject.DataAcquisition
             }
         }
 
+        public int MinValue
+        {
+            get => minValue;
+            private set
+            {
+                if (minValue != value)
+                {
+                    minValue = value;
+                    consumer?.OnSettingsChange(this);
+                }
+            }
+        }
+
+        public int MaxValue
+        {
+            get => maxValue;
+            set
+            {
+                if (maxValue != value)
+                {
+                    maxValue = value;
+                    consumer?.OnSettingsChange(this);
+                }
+            }
+        }
+
         public uint[] GetAvailableBufferSizes() => cachedBufferSizes;
 
         public IChannelInfo[] GetAvailableChannels() => cachedChannelInfos;
@@ -92,9 +120,9 @@ namespace CTProject.DataAcquisition
 
         #region ctor
 
-        public DeviceDataProvider()
+        public DeviceDataProvider(short port = DefaultAddress.Port)
         {
-            server = new TCPServer(DefaultAddress.Address, DefaultAddress.Port);
+            server = new TCPServer(DefaultAddress.Address, port);
             ResetCache();
 
             server.OnConnected = OnClientConnected;
@@ -140,18 +168,18 @@ namespace CTProject.DataAcquisition
             {
                 if (!isInitialized)
                     return DataProviderState.Uninitialized;
-                else if(!server.IsConnected)
+                else if (!server.IsConnected)
                     return DataProviderState.NotReady;
-                else if(isRemoteRunning)
+                else if (isRemoteRunning)
                     return DataProviderState.Working;
                 else
                     return DataProviderState.Ready;
             }
         }
 
-        public float GetMaxValue() => 10f;
+        public float GetMaxValue() => MaxValue;
 
-        public float GetMinValue() => 0f;
+        public float GetMinValue() => MinValue;
 
         public void Initialize()
         {
@@ -163,6 +191,36 @@ namespace CTProject.DataAcquisition
         }
 
         #endregion IDataProvider
+
+        #region public methods
+
+        public void AbortTCPThread()
+        {
+            server?.Abort();
+        }
+
+        public void ChangePort(short port)
+        {
+            if (isRemoteRunning)
+                SendStop();
+            server?.Stop();
+            server.OnConnected -= OnClientConnected;
+            server.OnDisconnected -= OnClientDisconnected;
+            server.OnMessageReceived -= OnMessageReceived;
+            server?.Dispose();
+
+            server = new TCPServer(DefaultAddress.Address, port);
+            ResetCache();
+
+            server.OnConnected = OnClientConnected;
+            server.OnDisconnected = OnClientDisconnected;
+            server.OnMessageReceived = OnMessageReceived;
+            server.Start();
+        }
+
+        #endregion public methods
+
+        #region private methods
 
         private void OnClientConnected()
         {
@@ -229,6 +287,10 @@ namespace CTProject.DataAcquisition
 
                 case MessageTypeDefinition.DataPacket:
                     OnMessageDataPacket(message);
+                    return;
+
+                case MessageTypeDefinition.MinMaxValueInfo:
+                    OnMessageMinMaxValueInfo(message);
                     return;
 
                 default:
@@ -343,9 +405,13 @@ namespace CTProject.DataAcquisition
             consumer?.ReceiveData((ulong)msg.MessageContentIndex, msg.MessageContentData);
         }
 
-        public void AbortTCPThread()
+        private void OnMessageMinMaxValueInfo(BinaryMessage message)
         {
-            server?.Abort();
+            var msg = MessageFactory.GetMessageFromBinary<IntArrayMessage>(message);
+            MinValue = msg.MessageContent[0];
+            MaxValue = msg.MessageContent[0];
         }
+
+        #endregion private methods
     }
 }

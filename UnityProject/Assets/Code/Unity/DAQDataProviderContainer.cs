@@ -10,6 +10,16 @@ namespace CTProject.Unity
 
         public string DataProviderName => "niDAQ Data Provider";
 
+        public short Port
+        {
+            get => port;
+            set
+            {
+                port = value;
+                dataProvider?.ChangePort(port);
+            }
+        }
+
         #endregion properties
 
         #region fields
@@ -19,6 +29,8 @@ namespace CTProject.Unity
         private DependencyProvider DependencyProvider;
 
         private DeviceDataProvider dataProvider;
+
+        private short port = DefaultAddress.Port;
 
         #endregion fields
 
@@ -48,7 +60,7 @@ namespace CTProject.Unity
 
         private void PrepareDataProvider()
         {
-            dataProvider = new DeviceDataProvider();
+            dataProvider = new DeviceDataProvider(Port);
 
             dataProvider.LoadDependencies(DependencyProvider);
             dataProvider.Initialize();
