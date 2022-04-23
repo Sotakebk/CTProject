@@ -22,12 +22,12 @@ namespace DAQProxy
             client.OnMessageReceived = OnMessageReceived;
         }
 
-        public void LoadDependencies(IDependencyProvider dependencyProvider)
+        public void LoadDependencies(IDependencyProvider provider)
         {
-            this.dependencyProvider = dependencyProvider;
-            client.LoadDependencies(dependencyProvider);
-            loggingService = dependencyProvider.GetDependency<ILoggingService>();
-            deviceHandler = dependencyProvider.GetDependency<DeviceHandler>();
+            dependencyProvider = provider;
+            client.LoadDependencies(provider);
+            loggingService = provider.GetDependency<ILoggingService>();
+            deviceHandler = provider.GetDependency<DeviceHandler>();
         }
 
         public void Start()
@@ -46,9 +46,12 @@ namespace DAQProxy
             client?.Stop();
             client?.Dispose();
 
-            client.OnDisconnected -= OnDisconnected;
-            client.OnConnected -= OnConnected;
-            client.OnMessageReceived -= OnMessageReceived;
+            if (client != null)
+            {
+	            client.OnDisconnected -= OnDisconnected;
+	            client.OnConnected -= OnConnected;
+	            client.OnMessageReceived -= OnMessageReceived;
+            }
 
             client = new TCPClient(address, port);
             client.LoadDependencies(dependencyProvider);

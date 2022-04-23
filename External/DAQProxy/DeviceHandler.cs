@@ -1,6 +1,5 @@
 ﻿using CTProject.Infrastructure;
 using DAQProxy.Services;
-using NationalInstruments;
 using NationalInstruments.DAQmx;
 using System;
 using System.Collections.Generic;
@@ -19,7 +18,7 @@ namespace DAQProxy
         private string selectedChannel = string.Empty;
         private string[] availableChannels = Array.Empty<string>();
         private int[] samplingRates = Array.Empty<int>();
-        public bool IsWorking { get; private set; }
+        public bool IsWorking => !(innerTask?.IsDone ?? true);
 
         public int SelectedBufferSize
         {
@@ -230,8 +229,8 @@ namespace DAQProxy
         private int[] GetPowersOf2BetweenInclusive(int A, int B)
         {
             if (A < 0) A = 0;
-            var itStart = (int)Math.Ceiling(Math.Log(A,2));
-            var itEnd = (int)Math.Floor(Math.Log(B,2));
+            var itStart = (int)Math.Ceiling(Math.Log(A, 2));
+            var itEnd = (int)Math.Floor(Math.Log(B, 2));
 
             var list = new List<int>();
             list.Add(A);

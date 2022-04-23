@@ -58,10 +58,6 @@ namespace CTProject.DataAcquisition.Communication
     {
         public int MessageType { get; set; }
 
-        public Message()
-        {
-        }
-
         public abstract BinaryMessage Serialize();
 
         public T DeserializeFrom<T>(BinaryMessage binary) where T : Message
@@ -133,7 +129,7 @@ namespace CTProject.DataAcquisition.Communication
 
     public sealed class StringArrayMessage : Message
     {
-        private const string separator = ((("😁"))); // I shouldn't do this... too bad!
+        private const string Separator = ((("😁"))); // I shouldn't do this... too bad!
 
         public string[] MessageContent { get; set; }
 
@@ -152,7 +148,7 @@ namespace CTProject.DataAcquisition.Communication
         {
             var bm = new BinaryMessage();
             bm.Type = MessageType;
-            var joinedString = string.Join(separator, MessageContent);
+            var joinedString = string.Join(Separator, MessageContent);
             bm.Data = Encoding.UTF8.GetBytes(joinedString);
             return bm;
         }
@@ -161,7 +157,7 @@ namespace CTProject.DataAcquisition.Communication
         {
             base.DeserializeFrom(binary);
             var joinedString = Encoding.UTF8.GetString(binary.Data);
-            MessageContent = joinedString.Split(new string[] { separator }, StringSplitOptions.None);
+            MessageContent = joinedString.Split(new string[] { Separator }, StringSplitOptions.None);
             return this;
         }
     }

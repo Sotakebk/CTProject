@@ -2,7 +2,6 @@
 using CTProject.Infrastructure;
 using DAQProxy.Services;
 using System;
-using System.Net;
 using System.Threading;
 
 namespace PipeWrapperTest
@@ -22,8 +21,8 @@ namespace PipeWrapperTest
 
             var ip = CTProject.DataAcquisition.DefaultAddress.Address;
             var port = CTProject.DataAcquisition.DefaultAddress.Port;
-            var server = new TCPServer(IPAddress.Loopback, port);
-            var client = new TCPClient(IPAddress.Loopback, port);
+            var server = new TCPServer(ip, port);
+            var client = new TCPClient(ip, port);
 
             server.LoadDependencies(dependencyProvider);
             client.LoadDependencies(dependencyProvider);

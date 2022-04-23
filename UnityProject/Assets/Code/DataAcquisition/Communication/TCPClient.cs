@@ -58,7 +58,7 @@ namespace CTProject.DataAcquisition.Communication
             Dispose();
         }
 
-        protected override void Reset(bool ResetTCP)
+        protected override void Reset(bool ResetTCP = true)
         {
             base.Reset();
             if (ResetTCP)

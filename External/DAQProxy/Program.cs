@@ -93,13 +93,13 @@ namespace DAQProxy
             var device = supportedDevices.FirstOrDefault() ?? devices.FirstOrDefault();
             if (devices.Length > 1)
             {
-                string input = string.Empty;
-                int i = 0;
+                string input;
+                int i;
 
                 do
                 {
                     Console.WriteLine($"Please decide which device to use: (0-{devices.Length})");
-                    for (int x = 0; x < devices.Length; x++)
+                    for (var x = 0; x < devices.Length; x++)
                     {
                         Console.WriteLine($"{x} {devices[x].ProductType} (ID: {devices[x].DeviceID})");
                     }
@@ -123,7 +123,6 @@ namespace DAQProxy
             {
                 Console.WriteLine("Minimum expected voltage?");
                 input = Console.ReadLine();
-
             } while (!int.TryParse(input, out minValue));
             return minValue;
         }
@@ -136,7 +135,6 @@ namespace DAQProxy
             {
                 Console.WriteLine("Maximum expected voltage?");
                 input = Console.ReadLine();
-
             } while (!int.TryParse(input, out maxValue) && maxValue >= minValue);
             return maxValue;
         }
@@ -155,7 +153,7 @@ namespace DAQProxy
 
         private static void GetAddress()
         {
-             address = DefaultAddress.Address;
+            address = DefaultAddress.Address;
             string input;
             do
             {
@@ -165,9 +163,7 @@ namespace DAQProxy
                 if (string.IsNullOrWhiteSpace(input))
                     break;
             } while (!IPAddress.TryParse(input, out address));
-
         }
-
 
         private static void GetPort()
         {
@@ -182,7 +178,6 @@ namespace DAQProxy
                     break;
             } while (!(int.TryParse(input, out port) && port >= 0 && port < 65535));
         }
-
 
         private static void ExitMessage(string msg = null)
         {
