@@ -34,6 +34,15 @@ namespace CTProject.Unity
 
         #endregion IDataProviderContainer
 
+        #region Unity calls
+
+        private void OnDestroy()
+        {
+            dataProvider?.Stop();
+        }
+
+        #endregion Unity calls
+
         #region private methods
 
         private void PrepareDataProvider()
