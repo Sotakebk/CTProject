@@ -125,7 +125,8 @@ namespace CTProject.Examples
                 Square,
                 Saw,
                 Noise,
-                SmoothNoise
+                SmoothNoise,
+                VerySmoothNoise
             };
 
             State = DataProviderState.Ready;
@@ -150,9 +151,9 @@ namespace CTProject.Examples
             return cachedChannelInfos.Select(c => c as IChannelInfo).ToArray();
         }
 
-        public uint[] GetAvailableBufferSizes() => new uint[] { 64, 128, 256, 512, 1024, 2048, 4096 };
+        public uint[] GetAvailableBufferSizes() => new uint[] { 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
 
-        public uint[] GetAvailableSamplingRates() => new uint[] { 256, 512, 1024, 2048, 4096, 8192, 16384 };
+        public uint[] GetAvailableSamplingRates() => new uint[] { 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384 };
 
         public float GetMaxValue() => 1f;
 
@@ -255,6 +256,21 @@ namespace CTProject.Examples
                 sum += GetNoiseFloat(x + i, 123456, 123456);
             }
             return sum / count;
+        }
+
+        private float VerySmoothNoise(int x, uint SamplingRate)
+        {
+            float pos = 5f * x / (SamplingRate);
+            // Floor
+            var xi = (int)Math.Floor(pos);
+            var t = pos - xi;
+
+            var a = GetNoiseFloat(xi, 1, 2);
+            var b = GetNoiseFloat(xi + 1, 1, 2);
+
+            var ti = t * t * (3 - 2 * t);
+
+            return a * (1 - ti) + b * ti;
         }
 
         private static int GetNoise(int x, int y, int z)

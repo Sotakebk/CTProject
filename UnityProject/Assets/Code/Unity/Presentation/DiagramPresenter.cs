@@ -93,7 +93,7 @@ namespace CTProject.Unity.Presentation
 
         private void OnTimeScaleValueChangedCallback(ChangeEvent<float> evt)
         {
-            graphicsService.TimeScale = Mathf.Clamp(-Mathf.Log(-evt.newValue + 1), 0.0001f, 10000f);
+            graphicsService.TimeScale = Mathf.Clamp(1 / evt.newValue, 0.0001f, 10000f);
         }
 
         private void OnLineWidthValueChangedCallback(ChangeEvent<float> evt)

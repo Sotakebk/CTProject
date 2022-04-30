@@ -1,5 +1,4 @@
 using CTProject.Infrastructure;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace CTProject.Unity
