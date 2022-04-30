@@ -56,7 +56,7 @@ namespace CTProject.Unity.Graph
 
             var block = dataBlocks[bufferID];
 
-            return block[FastIndexToBufferIndex(index)];
+            return block[Math.Clamp(FastIndexToBufferIndex(index), 0, block.Length - 1)];
         }
 
         #endregion public methods

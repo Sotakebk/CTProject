@@ -123,7 +123,9 @@ namespace CTProject.Examples
             {
                 Sin,
                 Square,
-                Saw
+                Saw,
+                Noise,
+                SmoothNoise
             };
 
             State = DataProviderState.Ready;
@@ -237,6 +239,36 @@ namespace CTProject.Examples
         {
             double position = (x * Math.PI) / (SamplingRate * 4.0);
             return (float)((position - Math.Floor(position)) * 2.0 - 1.0);
+        }
+
+        private float Noise(int x, uint SamplingRate)
+        {
+            return GetNoiseFloat(x, 123456, 123456);
+        }
+
+        private float SmoothNoise(int x, uint SamplingRate)
+        {
+            var count = 32;
+            var sum = 0f;
+            for (int i = 0; i < count; i++)
+            {
+                sum += GetNoiseFloat(x + i, 123456, 123456);
+            }
+            return sum / count;
+        }
+
+        private static int GetNoise(int x, int y, int z)
+        {
+            int v = z + x * 374761393 + y * 668265263;
+            v = (v ^ (v >> 13)) * 1274126177;
+            return v ^ (v >> 16);
+        }
+
+        private static float GetNoiseFloat(int x, int y, int z)
+        {
+            var value = GetNoise(x, y, z);
+            var doubleValue = Math.Clamp((double)value / (double)int.MaxValue, 0.0, 1.0); // 0 to 1
+            return ((float)doubleValue * 2f) - 1f;
         }
 
         #endregion worker delegate methods for different channels

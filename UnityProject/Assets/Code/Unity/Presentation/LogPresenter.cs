@@ -57,7 +57,6 @@ namespace CTProject.Unity.Presentation
             saveStackTraceToggle = view.Q<Toggle>(name: "saveStackTraceToggle");
 
             logContainer = view.Q(name: "logsContainer");
-            Debug.Log(logContainer);
 
             showEngineLogsToggle.RegisterValueChangedCallback(ShowEngineLogsChangedCallback);
             logDataSourceCallsToggle.RegisterValueChangedCallback(LogDataSourceCallsChangedCallback);

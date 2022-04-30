@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CTProject.Unity.Graph
@@ -13,7 +14,9 @@ namespace CTProject.Unity.Graph
         private int startIndex;
         private int length;
 
-        private LineRenderer lineRenderer;
+        private Mesh mesh;
+
+        private MeshFilter meshFilter;
         private bool isDirty;
 
         #endregion fields
@@ -44,12 +47,16 @@ namespace CTProject.Unity.Graph
             this.startIndex = startIndex;
             this.length = length;
 
-            lineRenderer = GetComponent<LineRenderer>();
+            mesh = new Mesh();
+
+            gameObject.AddComponent<MeshFilter>().mesh = mesh;
+            gameObject.AddComponent<MeshRenderer>().material = owner.GraphMaterial;
         }
 
         public void DestroySelf()
         {
             Destroy(gameObject);
+            Destroy(mesh);
         }
 
         public void SetDirty()
@@ -63,27 +70,89 @@ namespace CTProject.Unity.Graph
 
         private void RebuildLineSegment()
         {
+            mesh.Clear();
+
             var start = Math.Max(0, startIndex - 1);
             var end = Mathf.Min(startIndex + length, dataContainer.CurrentIndex);
-            var iterationLength = end - start;
-            UpdateLineRendererSettings();
-            lineRenderer.positionCount = iterationLength;
+            var lineCount = (end - start - 1);
+            var lineWidth = (graphicsService.LineWidthMultiplier / 2f);
+
+            var points = new List<Vector3>(lineCount * 4);
+            var indices = new List<int>(lineCount * 6);
             var zOrder = owner.ZOrder;
-            for (int x = 0; x < iterationLength; x++)
+
+            void DoLine(Vector3 a, Vector3 b)
             {
-                // TODO add additional points if the angle is too sharp or the distance is too big
-                var position = new Vector3(
+                var normal = Vector3.Cross(b - a, Vector3.forward).normalized * lineWidth;
+
+                Vector3 pA1 = a + normal;
+                Vector3 pA2 = a - normal;
+                Vector3 pB1 = b + normal;
+                Vector3 pB2 = b - normal;
+
+                var i = points.Count;
+
+                points.Add(pA1);
+                points.Add(pA2);
+                points.Add(pB1);
+                points.Add(pB2);
+
+                indices.Add(i + 0);
+                indices.Add(i + 1);
+                indices.Add(i + 2);
+                indices.Add(i + 3);
+                indices.Add(i + 2);
+                indices.Add(i + 1);
+            }
+
+            void DoPoint(Vector3 a, Vector3 b, Vector3 c)
+            {
+                var normal1 = Vector3.Cross(b - a, Vector3.forward).normalized * lineWidth;
+                var normal2 = Vector3.Cross(c - b, Vector3.forward).normalized * lineWidth;
+
+                Vector3 p1 = b + normal1;
+                Vector3 p2 = b - normal1;
+                Vector3 p3 = b + normal2;
+                Vector3 p4 = b - normal2;
+
+                var i = points.Count;
+
+                points.Add(p1);
+                points.Add(p2);
+                points.Add(p3);
+                points.Add(p4);
+
+                indices.Add(i + 0);
+                indices.Add(i + 1);
+                indices.Add(i + 2);
+                indices.Add(i + 3);
+                indices.Add(i + 2);
+                indices.Add(i + 1);
+            }
+
+            for (int x = 0; x < lineCount; x++)
+            {
+                var pointB = new Vector3(
+                    graphicsService.IndexToSeconds(start + x - 1) * graphicsService.TimeScale,
+                    dataContainer.GetPoint(start + x - 1) * graphicsService.DiagramScale,
+                    zOrder);
+
+                var pointT = new Vector3(
                     graphicsService.IndexToSeconds(start + x) * graphicsService.TimeScale,
                     dataContainer.GetPoint(start + x) * graphicsService.DiagramScale,
                     zOrder);
-                lineRenderer.SetPosition(x, position);
-            }
-        }
 
-        internal void UpdateLineRendererSettings()
-        {
-            lineRenderer.widthMultiplier = graphicsService.LineWidthMultiplier;
-            lineRenderer.alignment = LineAlignment.View;
+                var pointN = new Vector3(
+                    graphicsService.IndexToSeconds(start + x + 1) * graphicsService.TimeScale,
+                    dataContainer.GetPoint(start + x + 1) * graphicsService.DiagramScale,
+                    zOrder);
+                DoPoint(pointB, pointT, pointN);
+                DoLine(pointT, pointN);
+            }
+            mesh.SetVertices(points);
+            mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+            mesh.RecalculateBounds();
+            mesh.UploadMeshData(false);
         }
 
         #endregion private methods

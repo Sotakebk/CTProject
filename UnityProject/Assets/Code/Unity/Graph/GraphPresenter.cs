@@ -10,6 +10,8 @@ namespace CTProject.Unity.Graph
         public int GraphElementRerenderCounter { get; set; }
         public int ZOrder => zOrder;
 
+        public Material GraphMaterial => material;
+
         #endregion properties
 
         #region fields
@@ -19,7 +21,7 @@ namespace CTProject.Unity.Graph
         private GraphicsService graphicsService;
 
         [SerializeField]
-        private Material lineRendererMaterial;
+        private Material material;
 
         [SerializeField]
         private int zOrder = 10;
@@ -95,7 +97,7 @@ namespace CTProject.Unity.Graph
             switch (e.PropertyName)
             {
                 case nameof(GraphicsService.LineWidthMultiplier):
-                    graphElements.ForEach(g => g.UpdateLineRendererSettings());
+                    graphElements.ForEach(g => g.SetDirty());
                     return;
 
                 case nameof(GraphicsService.TimeScale):
@@ -110,10 +112,7 @@ namespace CTProject.Unity.Graph
 
         private GraphElement NewGraphElement()
         {
-            var gameObject = new GameObject("graph element",
-                new System.Type[] { typeof(GraphElement), typeof(LineRenderer) });
-            var lineRenderer = gameObject.GetComponent<LineRenderer>();
-            lineRenderer.material = lineRendererMaterial;
+            var gameObject = new GameObject("graph element", new System.Type[] { typeof(GraphElement) });
             gameObject.transform.parent = transform;
             return gameObject.GetComponent<GraphElement>();
         }

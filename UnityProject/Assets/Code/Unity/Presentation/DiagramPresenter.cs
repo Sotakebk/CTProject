@@ -15,7 +15,7 @@ namespace CTProject.Unity.Presentation
 
         // set from Unity
         [SerializeField]
-        private CameraController cameraController;
+        private WorldSpaceController cameraController;
 
         [SerializeField]
         private GraphicsService graphicsService;
